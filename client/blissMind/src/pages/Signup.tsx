@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { serverApi } from "../Auth/AuthProvider.tsx";
+import { API_ROUTE, serverApi } from "../Auth/AuthProvider.tsx";
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -26,12 +26,20 @@ const Signup = () => {
     // Handle form submit
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        try {
-            const response = await serverApi.post("/auth/signup", formData);
-            console.log('Form data submitted:', formData);
-            // navigate("/user");
-        } catch (error) {
-            console.error('Error during sign up:', error);
+        console.log(formData)
+        const response = await fetch(API_ROUTE + "/auth/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+        let p = await response.json();
+        if (p.code == 200) {
+            navigate("/login");
+        }
+        else {
+            alert(p.message);
         }
     };
 

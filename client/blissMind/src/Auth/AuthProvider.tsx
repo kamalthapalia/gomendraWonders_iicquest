@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import axios, { isAxiosError } from 'axios';
 
+
+export const API_ROUTE = 'http://localhost:8080'
 // serverApi
 export const serverApi = axios.create({
   baseURL: 'http://localhost:8080',
@@ -54,22 +56,22 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
   };
 
-  const logout = async() => {
+  const logout = async () => {
     try {
-      await serverApi.get('/auth/logout', {withCredentials: true});
+      await serverApi.get('/auth/logout', { withCredentials: true });
       setUser(null);
 
     } catch (error) {
-      if (isAxiosError(error)){
+      if (isAxiosError(error)) {
         console.log(error.message);
       }
     }
   };
 
   return (
-      <AuthContext.Provider value={{ user, login, logout }}>
-        {children}
-      </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 

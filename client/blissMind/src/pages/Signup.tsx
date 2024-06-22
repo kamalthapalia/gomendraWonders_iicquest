@@ -9,7 +9,7 @@ const Signup = () => {
         fullName: "",
         gender: "",
         age: "",
-        type: ""
+        type: "student"
     });
 
     const navigate = useNavigate();
@@ -47,7 +47,7 @@ const Signup = () => {
                 </div>
                 <div className={`h-full p-10 gap-10 flex flex-col`}>
                     <div className={`h-[200px] w-[85%] relative left-32 rounded-full overflow-y-hidden`}>
-                        <img className={`w-full h-full object-cover start`} src="https://images.pexels.com/photos/5846282/pexels-photo-5846282.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt=""/>
+                        <img className={`w-full h-full object-cover start`} src="https://images.pexels.com/photos/5846282/pexels-photo-5846282.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="" />
                     </div>
                     <div className={`h-fit w-full relative`}>
                         <div className={`flex flex-col gap-2`}>
@@ -56,7 +56,7 @@ const Signup = () => {
                         </div>
                     </div>
                     <div className={`h-[32%] bg-green-600 w-[55%] self-end relative left-12 rounded-full overflow-hidden`}>
-                        <img className={`w-full h-full object-cover object-top`} src="https://www.scoutnetworkblog.com/wp-content/uploads/2018/11/Plumber-Sink-201709-003.jpg" alt=""/>
+                        <img className={`w-full h-full object-cover object-top`} src="https://www.scoutnetworkblog.com/wp-content/uploads/2018/11/Plumber-Sink-201709-003.jpg" alt="" />
                     </div>
                 </div>
             </div>
@@ -109,7 +109,7 @@ const Signup = () => {
                     </div>
                     <div className={`flex flex-col`}>
                         <label className={`text-sm font-medium`}>User Type:</label>
-                        <select name="type" value={formData.type} onChange={handleChange} className={`border border-gray-300 p-2 rounded outline-none`} required>
+                        <select defaultValue={"student"} name="type" value={formData.type} onChange={handleChange} className={`border border-gray-300 p-2 rounded outline-none`} required>
                             <option value="student">Student</option>
                             <option value="professional">Professional</option>
                         </select>

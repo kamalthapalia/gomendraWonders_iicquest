@@ -6,9 +6,9 @@ import fetchuser from "../middleware/fetchUser.js";
 
 router.get('/', confessController.getAllConfessions);
 router.get('/user', fetchuser, confessController.getUserConfessions);
-router.get('/:id', confessController.getConfession);
+router.get('/:id', confessController.getSingleConfession);
 router.post('/',fetchuser, confessController.postConfession);
-router.patch("/:id", confessController.updateConfessions);
-router.delete("/:id", confessController.deleteConfessions);
+router.patch("/:id", fetchuser, confessController.updateConfessions);
+router.delete("/:id", fetchuser, confessController.deleteConfessions);
 
 export default router;

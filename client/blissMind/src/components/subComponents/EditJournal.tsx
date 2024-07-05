@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react"
 
 export default function EditJournal() {
-    const [date, setData] = useState();
+    // const [date, setData] = useState();
 
     const [description, setDescription] = useState("");
 

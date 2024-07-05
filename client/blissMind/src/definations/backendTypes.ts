@@ -20,7 +20,8 @@ export type CommentType = {
 
 export interface ConfessionType {
     _id: string;
-    description?: string;
+    userId: string;
+    description: string;
     isanonymous: boolean;
     fullName: string;
     createdAt: Date;
@@ -28,5 +29,4 @@ export interface ConfessionType {
     like: number;
     dislike: number;
     comments: CommentType[];
-    __v: number;
 }

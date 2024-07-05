@@ -1,3 +1,6 @@
+import type{ Dispatch, SetStateAction } from "react";
+import type{ ConfessionType } from "./backendTypes";
+
 export type signUpType = {
   email: string,
   password: string,
@@ -21,4 +24,18 @@ export interface UserType {
     type: "student" | "professional";
     description: string;
   }
-  
+ 
+  // props and others
+  type NumOfReactionType = {
+    like: number,
+    dislike: number
+}
+enum Reaction { NONE, LIKE, DISLIKE }
+  export interface ConfessionCardFrameProps {
+    confession: ConfessionType,
+    numOfReaction: NumOfReactionType,
+    setNumOfReaction: Dispatch<SetStateAction<NumOfReactionType>>,
+    setOpenPost: Dispatch<SetStateAction<boolean>>,
+    reaction: Reaction,
+    setReaction: Dispatch<SetStateAction<Reaction>>
+}

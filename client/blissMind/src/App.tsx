@@ -55,7 +55,7 @@ function App() {
                 <Route path="/chat" element={<ProtectedRoute element={<Chat />} />} />
                 <Route path="/blogs" element={<ProtectedRoute element={<BlogCards />} />} />
                 <Route path="/blog/:id" element={<ProtectedRoute element={<BlogPage />} />} />
-                <Route path="/edit/:id" element={<ProtectedRoute element={<UpdateConfession />} />} />
+                <Route path="/confession/:id" element={<ProtectedRoute element={<UpdateConfession />} />} />
                 <Route path="/mygoals" element={<ProtectedRoute element={<Goals />} />} />
                 <Route path="/blog/create" element={<ProtectedRoute element={<CreateBlog />} />} />
                 <Route path="/goal/:id" element={<ProtectedRoute element={<GoalPage />} />} />

@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BlogCard from './BlogCard';
-
-interface Blog {
-    _id: string;
-    userId: string;
-    title: string;
-    description: string;
-    __v: number;
-}
+import { BlogType } from '../definations/backendTypes';
 
 const BlogCards: React.FC = () => {
-    const [blogs, setBlogs] = useState<Blog[]>([]);
+    const [blogs, setBlogs] = useState<BlogType[]>([]);
 
     useEffect(() => {
         const fetchBlogs = async () => {

@@ -8,15 +8,43 @@ import Confession from "./Confession.tsx";
 import { ConfessionType } from "../definations/backendTypes.ts";
 import { timeParser } from "../utils/timeParser.ts";
 
+
+enum Reaction {NONE, LIKE, DISLIKE}
+
 const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
     const [openPost, setOpenPost] = useState(false);
+    const [reaction, setReaction] = useState<Reaction>(Reaction.NONE);
+
+    const [numOfReaction, setNumOfReaction] = useState({
+        like: confession.like,
+        dislike: confession.dislike
+    })
     // const [editPost, setEditPost] = useState(false);
+
+    const handleLike = () => {
+        setReaction(Reaction.LIKE)
+        setNumOfReaction({
+            like: confession.like +1,
+            dislike: confession.dislike
+        })
+    }
+    const handleDislike = () => {
+        setReaction(Reaction.DISLIKE)
+        setNumOfReaction({
+            like: confession.like,
+            dislike: confession.dislike + 1
+        });
+    }
+
+
+    const handleOpenPost = () => {
+        setOpenPost(true)
+        document.body.style.overflowY = "hidden";
+    }
 
     return (
         <>
-            <div onClick={() => {
-                document.body.style.overflowY = 'hidden';
-            }} className=" bg-gray-50 border border-blue-100 cursor-pointer rounded p-3 flex flex-col gap-2">
+            <div className=" bg-gray-50 border border-blue-100 rounded p-3 flex flex-col gap-2">
                 <div className={`flex justify-between`}>
                     <div className={`flex gap-3.5 items-center`}>
                         <img src="https://avatar.iran.liara.run/public" className={`w-14 h-14 bg-red-200 rounded-full`} alt="" />
@@ -29,15 +57,15 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
                 <div>
                     <p className={` text-gray-700 line-clamp-5 pt-3`}>{confession.description}</p>
                     <div className={`flex mt-5 gap-3`}>
-                        <div className={`flex items-center gap-2`}>
-                            <AiOutlineHeart className={`text-lg`} />
-                            <p className={`font-semibold text-sm`}>{confession.like} likes</p>
+                        <div onClick={handleLike} className={`flex items-center gap-2 hover:bg-rose-200 py-2 px-4 rounded-full cursor-pointer`}>
+                            <AiOutlineHeart className={`text-lg ${reaction == Reaction.LIKE && "text-rose-500"}`} />
+                            <p className={`font-semibold text-sm`}>{numOfReaction.like} likes</p>
                         </div>
-                        <div className={`flex items-center gap-2 hover:bg-emerald-100 p-2 rounded-full cursor-pointer`}>
-                            <IoHeartDislikeOutline className={`text-lg`} />
-                            <p className={`font-semibold text-sm`}>{confession.dislike} dislikes</p>
+                        <div onClick={handleDislike} className={`flex items-center gap-2 hover:bg-gray-200 py-2 px-4 rounded-full cursor-pointer`}>
+                            <IoHeartDislikeOutline className={`text-lg ${reaction == Reaction.DISLIKE && "text-fuchsia-500"}`} />
+                            <p className={`font-semibold text-sm`}>{numOfReaction.dislike} dislikes</p>
                         </div>
-                        <div onClick={()=> setOpenPost(true)} className={`flex items-center gap-2`}>
+                        <div onClick={handleOpenPost} className={`flex items-center gap-2 hover:bg-emerald-100 py-2 px-4 rounded-full cursor-pointer`}>
                             <AiOutlineComment className={`text-lg`} />
                             <p className={`font-semibold text-sm`}>{confession.comments.length || 0} comments</p>
                         </div>
@@ -54,7 +82,8 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
                             <AiOutlineClose />
                         </div>
                     </div>
-                    <Confession confessionId={confession._id} />
+                    {/* <Confession confessionId={confession._id} /> */}
+                    <Confession  confession={confession} numOfReaction={numOfReaction} confessionId={confession._id} />
                 </div>
             }
         </>

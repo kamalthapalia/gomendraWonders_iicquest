@@ -24,6 +24,8 @@ import UpdateConfession from "./components/subComponents/UpdateConfession.tsx";
 import { CreateJournal } from "./components/subComponents/CreateJournal.tsx";
 import Footer from "./components/Footer.tsx";
 import BlogCards from "./components/BlogCards.tsx";
+import MyConfessions from './components/subComponents/MyConfessions.tsx';
+import MyBlogs from './components/subComponents/MyBlogs.tsx';
 // import {BiMessageSquareDetail} from "react-icons/bi";
 // import {useState} from "react";
 
@@ -43,7 +45,7 @@ function App() {
             <Routes>
                 {!user.userId && (
                     <>
-                        <Route path="/login" element={<Login/>} />
+                        <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
                     </>
                 )}
@@ -61,8 +63,9 @@ function App() {
                 <Route path="/session/:id" element={<ProtectedRoute element={<SessionPage />} />} />
                 <Route path="/confessions" element={<ProtectedRoute element={<Confessions />} />} />
                 <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />}>
-                    <Route path="" element={<Journals />} />
-                    <Route path="confessions" element={<Confessions />} />
+                    {user.type == "professional" && <Route path="blog" element={<MyBlogs />} />}
+                    {user.type == "student" && <Route path="journal" element={<Journals />} /> }
+                    <Route path="confession" element={<MyConfessions />} />
                 </Route>
                 <Route path={`/*`} element={<NotFound />} />
             </Routes>

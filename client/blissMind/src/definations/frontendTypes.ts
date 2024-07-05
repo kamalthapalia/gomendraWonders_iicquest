@@ -18,7 +18,7 @@ export interface UserType {
     userId: string;
     fullName: string;
     email: string;
-    type: string;
+    type: "student" | "professional";
     description: string;
   }
   

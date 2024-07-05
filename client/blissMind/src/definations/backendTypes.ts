@@ -6,6 +6,10 @@ export interface JournalType {
     updatedAt: Date   
 }
 
+export interface BlogType extends JournalType{
+    title: string,
+}
+
 export type CommentType = {
     commenterId: string,
     username: string,

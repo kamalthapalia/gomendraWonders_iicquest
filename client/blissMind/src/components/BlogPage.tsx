@@ -5,15 +5,13 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { serverApi } from "../Auth/AuthProvider";
 
-type BlogType = {
-    title: string;
-    description: string;
-    createdAt: string;
-};
+import { BlogType } from "../definations/backendTypes";
+import { timeParser } from "../utils/timeParser";
+
 
 const BlogPage = () => {
     const { id } = useParams<{ id: string }>();
-    const [blog, setBlog] = useState<BlogType | null>(null);
+    const [blog, setBlog] = useState({} as BlogType);
 
     useEffect(() => {
         const fetchSingleBlog = async () => {
@@ -44,7 +42,7 @@ const BlogPage = () => {
                     </div>
                     <div className="flex gap-2 items-center">
                         <AiOutlineClockCircle />
-                        <p>5 mins ago</p>
+                        <p>{timeParser(blog.updatedAt)}</p>
                     </div>
                 </div>
                 <h1 className="font-bold text-lg mt-2">{blog.title}</h1>

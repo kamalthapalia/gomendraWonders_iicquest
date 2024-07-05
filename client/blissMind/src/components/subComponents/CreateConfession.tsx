@@ -11,7 +11,7 @@ const CreateConfession = ({ setCreate }: { setCreate: Dispatch<SetStateAction<bo
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
-        if (!user) {
+        if (!user.userId) {
             console.error('User not authenticated');
             return;
         }
@@ -37,7 +37,7 @@ const CreateConfession = ({ setCreate }: { setCreate: Dispatch<SetStateAction<bo
                             <p className="font-semibold">{user.fullName}</p>
                         </div>
                     </div>
-                    <div className="text-xl" onClick={() => setCreate(false)}>
+                    <div className=" center-child | h-10 w-10 text-xl cursor-pointer rounded-full bg-gray-200" onClick={() => setCreate(false)}>
                         <AiOutlineClose />
                     </div>
                 </div>

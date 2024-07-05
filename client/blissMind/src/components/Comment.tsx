@@ -1,8 +1,8 @@
-import { CommentType } from "../definations/frontendTypes";
+import { CommentType } from "../definations/backendTypes";
 
 const Comment = ({ comment }: { comment: CommentType }) => {
     return (
-        <div className={`p-2 rounded bg-gray-100 `}>
+        <div className={`p-2 rounded bg-gray-100 shadow-md shadow-emerald-100/60 `}>
             <div className={`flex gap-3.5 items-center`}>
                 <img src="https://avatar.iran.liara.run/public" className={`w-8 h-8 bg-red-200 rounded-full`} alt="" />
                 <div className={`flex flex-col gap-0`}>

@@ -1,9 +1,19 @@
 import Confess from "../models/confess.model.js";
 
 const confessController = {
-    getConfessions: async (req, res) => {
+    getAllConfessions: async (req, res) => {
         try {
             const data = await Confess.find().sort({ updatedAt: -1 });
+            if (data) return res.status(200).json({data });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: error.message });
+        }
+    },
+    getUserConfessions: async (req, res) => {
+        const {userId} = req;
+        try {
+            const data = await Confess.find({userId}).sort({ updatedAt: -1 });
             if (data) return res.status(200).json({data });
         } catch (error) {
             console.log(error);

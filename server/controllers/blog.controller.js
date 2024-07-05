@@ -2,9 +2,20 @@ import Blogs from '../models/blog.model.js'
 
 const blogController = {
     // get all blogs
-    getBlogs: async (req, res) => {
+    getAllBlogs: async (req, res) => {
         try {
-            const data = await Blogs.find();
+            const data = await Blogs.find().sort({updatedAt: -1});
+            return res.status(200).json({ data });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: error.message });
+        }
+    },
+
+    getUserBlogs: async (req, res) => {
+        const {userId} = req;
+        try {
+            const data = await Blogs.find({userId}).sort({updatedAt: -1});
             return res.status(200).json({ data });
         } catch (error) {
             console.log(error);

@@ -6,7 +6,7 @@ const journalController = {
         // middleware will put userId in reqBody
         const {userId} = req;
         try {
-            const data = await Journal.find({userId});
+            const data = await Journal.find({userId}).sort({updatedAt: -1});
             return res.status(200).json({ data });
         } catch (error) {
             // console.log(error);
@@ -32,7 +32,6 @@ const journalController = {
             const { description } = req.body;
             const newJournal = new Journal({ userId, description });
             await newJournal.save();
-            console.log("saved")
             res.status(200).json({ message: "Journal Created Successfully" });
 
         } catch (error) {

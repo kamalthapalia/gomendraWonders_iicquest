@@ -6,6 +6,7 @@ import { IoHeartDislikeOutline } from "react-icons/io5";
 import Confession from "./Confession.tsx";
 // types
 import { ConfessionType } from "../definations/backendTypes.ts";
+import { timeParser } from "../utils/timeParser.ts";
 
 const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
     const [openPost, setOpenPost] = useState(false);
@@ -21,7 +22,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
                         <img src="https://avatar.iran.liara.run/public" className={`w-14 h-14 bg-red-200 rounded-full`} alt="" />
                         <div className={`flex flex-col gap-0`}>
                             <p className={`font-semibold`}>{confession.fullName}</p>
-                            <p className={`text-sm font-semibold text-gray-500`}>{(`${confession.updatedAt}`).split("T")[0]}</p>
+                            <p className={`text-sm font-semibold text-gray-500`}>{timeParser(confession.updatedAt)}</p>
                         </div>
                     </div>
                 </div>

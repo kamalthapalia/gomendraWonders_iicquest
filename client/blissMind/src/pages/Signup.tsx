@@ -1,8 +1,9 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { serverApi } from "../Auth/AuthProvider.tsx";
+import {useAuth } from "../Auth/AuthProvider.tsx";
 
 const Signup = () => {
+    const { signUp } = useAuth();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -26,10 +27,9 @@ const Signup = () => {
     // Handle form submit
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
         try {
-            const response = await serverApi.post("/auth/signup", formData);
-            localStorage.setItem('user', response.data.data)
-            console.log('Form data submitted:', formData);
+            await signUp(formData);
             navigate("/");
         } catch (error) {
             console.error('Error during sign up:', error);

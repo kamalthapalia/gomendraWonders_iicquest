@@ -1,16 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserType } from '../definations/frontendTypes';
 
-function useUserStorage() {
-    const [storedUser, setStoredUser] = useState<UserType>(() => {
-        try {
-            const item = localStorage.getItem("user");
-            return item ? JSON.parse(item) : {};
-        } catch (error) {
-            console.log(error);
-            return {};
-        }
-    });
+function useUserStorage(): [UserType, (user: UserType) => void] {
+    const [storedUser, setStoredUser] = useState<UserType>({} as UserType);
+    useEffect(() => {
+        const user = localStorage.getItem("user");
+        if(user)
+            setStoredUser(JSON.parse(user)) 
+    }, [])
+
 
     const setValue = (user: UserType) => {
         try {

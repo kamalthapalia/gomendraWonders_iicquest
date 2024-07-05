@@ -1,6 +1,7 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useEffect } from 'react';
 import axios, { isAxiosError } from 'axios';
-import { AuthContextProps, UserType } from '../definations/frontendTypes';
+import { AuthContextProps, signUpType, UserType } from '../definations/frontendTypes';
+import useUserStorage from '../Hooks/useUserStorage';
 
 // serverApi
 export const serverApi = axios.create({
@@ -10,26 +11,22 @@ export const serverApi = axios.create({
 
 const AuthContext = createContext<AuthContextProps>({
   user: {} as UserType,
+  signUp: async () => { },
   login: async () => { },
   logout: async () => { }
 });
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<UserType>(()=> {
-    const savedUser = localStorage.getItem('user');
-    console.log(savedUser)
-    return savedUser ? JSON.parse(savedUser): {}
-  });
+  const [user, setUser] = useUserStorage();
 
   useEffect(() => {
     const checkUser = async () => {
       try {
-          const response = await serverApi.get('/auth', { withCredentials: true });
-          console.log(response);
-          setUser(response.data.data);
+        const response = await serverApi.get('/auth', { withCredentials: true });
+        setUser(response.data.data);
+
       } catch (error) {
-        console.log(error)
-        localStorage.removeItem('user')
+        // console.log(error)
         setUser({} as UserType)
         console.error('User not authenticated');
       }
@@ -38,12 +35,20 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     checkUser();
   }, []);
 
+  const signUp = async (formData: signUpType) => {
+    try {
+      const res = await serverApi.post("/auth/signup", formData);
+      console.log('Form data submitted:', formData);
+      setUser(res.data.data)
+
+    } catch (error) {
+      console.error('Error during sign up:', error);
+    }
+  }
+
   const login = async (email: string, password: string) => {
     try {
       const res = await serverApi.post('/auth/login', { email, password });
-      // store to local storage
-      const userDetails = JSON.stringify(res.data.data);
-      localStorage.setItem('user', userDetails)
       setUser(res.data.data);
     } catch (error) {
       console.log(error)
@@ -55,7 +60,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await serverApi.get('/auth/logout', { withCredentials: true });
       setUser({} as UserType);
-      localStorage.removeItem('user')
     } catch (error) {
       if (isAxiosError(error)) {
         console.log(error.message);
@@ -64,7 +68,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, signUp, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

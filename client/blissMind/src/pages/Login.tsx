@@ -1,10 +1,23 @@
-import {ChangeEvent, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import { useAuth } from "../Auth/AuthProvider";
+import {ChangeEvent, useEffect, useState} from "react";
+import {Link, useNavigate } from "react-router-dom";
+import { serverApi, useAuth } from "../Auth/AuthProvider";
 
 const Login = () => {
     const {login} = useAuth();
     const navigate = useNavigate();
+
+    useEffect(()=> {
+        const fetchUser = async () => {
+            try{
+                await serverApi.get('/auth')
+                navigate(-1);
+            }
+            catch(err){
+                console.log(err)
+            }
+        }
+        fetchUser();
+    },[])
 
     const [formData, setFormData] = useState({
         email: "",

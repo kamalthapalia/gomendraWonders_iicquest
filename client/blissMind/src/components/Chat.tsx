@@ -29,14 +29,14 @@ const Chat = () => {
         console.log(data)
     }
 
-    useEffect(() => {
-        const fetchMessages = async()=> {
-            const res = await serverApi.get('/aichat');
-            console.log(res)
-            setMessage(res.data.data);
-        }
-        fetchMessages();
-    }, [])
+    // useEffect(() => {
+    //     const fetchMessages = async()=> {
+    //         const res = await serverApi.get('/aichat');
+    //         console.log(res)
+    //         setMessage(res.data.data);
+    //     }
+    //     fetchMessages();
+    // }, [])
 
     return (
 

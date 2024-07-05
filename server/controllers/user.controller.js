@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import User from "../models/user.model.js"
+import storeCookie from "../utils/cookieHandler.js"
 
 const userController = {
 	getUser: (req, res) => {
@@ -11,8 +11,8 @@ const userController = {
 	signUpUser: async (req, res) => {
 		const { type, fullName, email, password, age, gender, description } = req.body;
 		const hashedPassword = bcrypt.hashSync(password, 10);
-		console.log(req.body)
 
+		// if user already present
 		const dbUser = await User.findOne({ email });
 		if (dbUser) {
 			return res.status(403).json({
@@ -31,30 +31,13 @@ const userController = {
 				password: hashedPassword,
 			});
 			await newUser.save();
-
-			const data = {
-				userId: newUser._id,
-				fullName: newUser.fullName,
-				email: newUser.email,
-				type: newUser.type,
-				description: newUser.description
-			};
-
-			const user_token = jwt.sign(data, process.env.JWT_SECRET, {
-				expiresIn: "7d",
-			});
-
-			res.cookie("user_token", user_token, {
-				path: "/",
-				httpOnly: true,
-				secure: true,
-				sameSite: "None"
-			});
-
-			console.log(user_token)
+			
+			// cookie store
+			const data = storeCookie(newUser, res);
 
 			return res.status(200).json({
 				message: `successfully created a user named ${fullName}`,
+				data
 			});
 		} catch (error) {
 			console.log(error);
@@ -76,27 +59,10 @@ const userController = {
 			if (!isValidPassword) {
 				return res.status(403).json({ message: "Invalid credentials provided" });
 			}
+			// console.log(dbUser)
 
-			console.log(dbUser)
-
-			const data = {
-				userId: dbUser._id,
-				fullName: dbUser.fullName,
-				email: dbUser.email,
-				type: dbUser.type,
-				description: dbUser.description
-			};
-
-			const user_token = jwt.sign(data, process.env.JWT_SECRET, {
-				expiresIn: "7d",
-			});
-
-			res.cookie("user_token", user_token, {
-				path: "/",
-				httpOnly: true,
-				secure: true,
-				sameSite: "None"
-			});
+			// cookie store
+			const data = storeCookie(dbUser, res);
 
 			return res.status(200).json({ message: "Successfully logged in", data });
 		} catch (err) {

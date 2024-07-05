@@ -3,31 +3,19 @@ import { AiOutlineEdit } from "react-icons/ai";
 import CreateConfession from "./subComponents/CreateConfession";
 import ConfessionCard from "./ConfessionCard";
 import { serverApi } from "../Auth/AuthProvider";
+import { ConfessionType } from "../definations/backendTypes";
 
-interface Comment {
-    // Define the properties of a comment here if needed
-}
 
-interface Confession {
-    _id: string;
-    description?: string;
-    isanonymous: boolean;
-fullName:string;
-    createdAt:string;
-    like: number;
-    dislike: number;
-    comment: Comment[];
-    __v: number;
-}
 
 const Confessions = () => {
     const [create, setCreate] = useState(false);
-    const [confessions, setConfessions] = useState<Confession[]>([]); // Initialize as an empty array with Confession type
+    const [confessions, setConfessions] = useState<ConfessionType[]>([]); // Initialize as an empty array with Confession type
 
     useEffect(() => {
         const fetchConfessions = async () => {
             try {
-                const response = await serverApi.get<{ data: Confession[] }>('/confess');
+                const response = await serverApi.get<{ data: ConfessionType[] }>('/confess');
+                console.log(response)
                 if (Array.isArray(response.data.data)) {
                     setConfessions(response.data.data); // Ensure the response is an array
                 } else {
@@ -37,9 +25,8 @@ const Confessions = () => {
                 console.error('Failed to fetch confessions:', error);
             }
         };
-
         fetchConfessions();
-    }, []);
+    }, [create]);
 
     return (
         <>
@@ -51,7 +38,7 @@ const Confessions = () => {
                         <AiOutlineEdit size={`1.3em`} />Share your thoughts.
                     </div>
                 </div>
-                {confessions.reverse().map(confession => (
+                {confessions.map(confession => (
                     <ConfessionCard key={confession._id} confession={confession} />
                 ))}
             </div>

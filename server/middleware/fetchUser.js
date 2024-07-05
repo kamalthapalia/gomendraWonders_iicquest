@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken'
 
 const fetchuser = (req, res, next) => {
-    // console.log(req.cookies)
 	
 	try {
 		const user_token = req.cookies.user_token;

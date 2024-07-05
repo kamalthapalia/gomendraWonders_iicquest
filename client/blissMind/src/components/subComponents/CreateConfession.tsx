@@ -1,9 +1,9 @@
-import { FormEvent, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useAuth } from '../../Auth/AuthProvider';
 import { serverApi } from '../../Auth/AuthProvider';
 
-const CreateConfession = ({ setCreate }) => {
+const CreateConfession = ({ setCreate }: { setCreate: Dispatch<SetStateAction<boolean>> }) => {
     const { user } = useAuth();
     const [confession, setConfession] = useState('');
     const [isanonymous, setIsAnonymous] = useState(false);
@@ -17,18 +17,11 @@ const CreateConfession = ({ setCreate }) => {
         }
 
         try {
-            const response = await serverApi.post('/confess/', {
+            await serverApi.post('/confess', {
                 description: confession,
                 isanonymous,
             });
-
-            if (response.status === 200) {
-                setConfession('');
-                setIsAnonymous(true);
-                setCreate(false);
-            } else {
-                console.error('Error posting confession');
-            }
+            setCreate(false);
         } catch (error) {
             console.error('Error posting confession', error);
         }
@@ -41,7 +34,7 @@ const CreateConfession = ({ setCreate }) => {
                     <div className="flex gap-3.5 items-center">
                         <img src="https://avatar.iran.liara.run/public" className="w-14 h-14 bg-red-200 rounded-full" alt="" />
                         <div className="flex flex-col gap-0">
-                            <p className="font-semibold">{user?.fullName || 'Anonymous'}</p>
+                            <p className="font-semibold">{user.fullName}</p>
                         </div>
                     </div>
                     <div className="text-xl" onClick={() => setCreate(false)}>
@@ -61,7 +54,7 @@ const CreateConfession = ({ setCreate }) => {
                         <input
                             type="checkbox"
                             id="anonymous-post"
-                            checked={isanonymous}
+                            defaultChecked={false}
                             onClick={() => setIsAnonymous((prev) => !prev)}
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                         />

@@ -3,10 +3,10 @@ import Journal from "../models/journal.model.js";
 const journalController = {
     // get all blogs
     getJournals: async (req, res) => {
+        // middleware will put userId in reqBody
+        const {userId} = req;
         try {
-            // middleware will put userId in reqBody
-            const userId = req.userId;
-            const data = await Journal.findById(userId);
+            const data = await Journal.find({userId});
             return res.status(200).json({ data });
         } catch (error) {
             // console.log(error);

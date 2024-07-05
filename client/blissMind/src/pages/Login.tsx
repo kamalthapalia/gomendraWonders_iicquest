@@ -1,7 +1,11 @@
 import {ChangeEvent, useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import { useAuth } from "../Auth/AuthProvider";
 
-const Login = ({login}: {login: (email:string, password: string)=> void}) => {
+const Login = () => {
+    const {login} = useAuth();
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -16,10 +20,15 @@ const Login = ({login}: {login: (email:string, password: string)=> void}) => {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        login(formData.email, formData.password);
-        // Handle submit logic here if needed
+        try{
+            await login(formData.email, formData.password);
+            navigate('/')
+        }
+        catch(err){
+            console.log(err)
+        }
     };
 
     return (

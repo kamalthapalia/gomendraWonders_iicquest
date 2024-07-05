@@ -17,7 +17,7 @@ const commentSchema = new Schema({
         require: true,
         maxlength: 1000
     }
-})
+}, {timestamps: true})
 
 const confessSchema = new Schema({
     userId: {
@@ -50,7 +50,7 @@ const confessSchema = new Schema({
         default: 0
     },
 
-    comment: [
+    comments: [
         {
             type: Types.ObjectId,
             ref: "Comment"

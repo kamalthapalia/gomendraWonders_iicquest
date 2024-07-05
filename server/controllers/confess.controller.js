@@ -3,7 +3,7 @@ import Confess from "../models/confess.model.js";
 const confessController = {
     getConfessions: async (req, res) => {
         try {
-            const data = await Confess.find();
+            const data = await Confess.find().sort({ updatedAt: -1 });
             if (data) return res.status(200).json({data });
         } catch (error) {
             console.log(error);
@@ -24,15 +24,9 @@ const confessController = {
         const {userId, fullName} = req;
 
         try {
-
-            // req.fullName = fullName;
-            // req.email = email;
-            // req.userId = userId;
-            // req.type = type;
-            // req.description = description;
-            //
             const { description, isanonymous} = req.body;
-            const newConfess = new Confess({ description, isanonymous, userId, fullName });
+            const username = isanonymous ? "Anonymous" : fullName;
+            const newConfess = new Confess({ description, isanonymous, userId, fullName: username });
             await newConfess.save();
             res.status(200).json({ message: "Confession saved successfully" })
         } catch (error) {

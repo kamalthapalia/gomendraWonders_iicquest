@@ -1,39 +1,28 @@
 import { useState, useEffect } from "react";
 import { AiOutlineComment, AiOutlineEdit, AiOutlineHeart, AiOutlineSend } from "react-icons/ai";
-import Comment from "./Comment";
 import { IoHeartDislikeOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-import { serverApi } from "../Auth/AuthProvider"; // Adjust the import path as needed
 
-interface Comment {
-    // Define the properties of a comment here if needed
-}
+// components
+import Comment from "./Comment";
 
-interface Confession {
-    _id: string;
-    fullName: string;
-    description: string;
-    isanonymous: boolean;
-    like: number;
-    dislike: number;
-    comment: Comment[];
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-}
+// types + utils
+import { ConfessionType } from "../definations/backendTypes";
+import { serverApi } from "../Auth/AuthProvider";
+
 
 interface ConfessionProps {
     confessionId: string;
 }
 
 const Confession: React.FC<ConfessionProps> = ({ confessionId }) => {
-    const [confession, setConfession] = useState<Confession | null>(null);
+    const [confession, setConfession] = useState({} as ConfessionType);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchConfession = async () => {
             try {
-                const response = await serverApi.get<{ confess: Confession }>(`/confess/${confessionId}`);
+                const response = await serverApi.get<{ confess: ConfessionType }>(`/confess/${confessionId}`);
                 setConfession(response.data.confess);
             } catch (error) {
                 console.error('Failed to fetch confession:', error);
@@ -77,7 +66,7 @@ const Confession: React.FC<ConfessionProps> = ({ confessionId }) => {
                     </div>
                     <div className={`flex items-center gap-2 p-2`}>
                         <AiOutlineComment className={`text-lg`} />
-                        <p className={`font-semibold text-sm`}>{confession.comment.length} comments</p>
+                        <p className={`font-semibold text-sm`}>{confession.comments ? confession.comments.length : 0} comments</p>
                     </div>
                 </div>
 
@@ -91,8 +80,8 @@ const Confession: React.FC<ConfessionProps> = ({ confessionId }) => {
                         </div>
                     </div>
                     <div className={`flex gap-5 flex-col`}>
-                        {confession.comment.map((comment, index) => (
-                            <Comment key={index} />
+                        {confession.comments && confession.comments.map((comment, index) => (
+                            <Comment comment={comment} key={index} />
                         ))}
                     </div>
                 </div>

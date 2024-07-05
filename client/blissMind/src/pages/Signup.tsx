@@ -7,7 +7,7 @@ const Signup = () => {
         email: "",
         password: "",
         fullName: "",
-        gender: "",
+        gender: "male",
         age: "",
         type: "student"
     });
@@ -28,8 +28,9 @@ const Signup = () => {
         e.preventDefault();
         try {
             const response = await serverApi.post("/auth/signup", formData);
+            localStorage.setItem('user', response.data.data)
             console.log('Form data submitted:', formData);
-            // navigate("/user");
+            navigate("/");
         } catch (error) {
             console.error('Error during sign up:', error);
         }
@@ -98,14 +99,10 @@ const Signup = () => {
                     </div>
                     <div className={`flex flex-col`}>
                         <label className={`text-sm font-medium`}>Gender:</label>
-                        <input
-                            type="text"
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleChange}
-                            className={`border border-gray-300 p-2 rounded outline-none`}
-                            required
-                        />
+                        <select name="gender" value={formData.gender} defaultValue={formData.gender} onChange={handleChange} className={`border border-gray-300 p-2 rounded outline-none`} required>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
                     </div>
                     <div className={`flex flex-col`}>
                         <label className={`text-sm font-medium`}>User Type:</label>

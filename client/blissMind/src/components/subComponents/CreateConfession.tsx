@@ -17,11 +17,13 @@ const CreateConfession = ({ setCreate }: { setCreate: Dispatch<SetStateAction<bo
         }
 
         try {
-            await serverApi.post('/confess', {
-                description: confession,
-                isanonymous,
-            });
-            setCreate(false);
+            if (confession) {
+                await serverApi.post('/confess', {
+                    description: confession,
+                    isanonymous,
+                });
+                setCreate(false);
+            }
         } catch (error) {
             console.error('Error posting confession', error);
         }

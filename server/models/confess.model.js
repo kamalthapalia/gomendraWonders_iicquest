@@ -12,7 +12,7 @@ const commentSchema = new Schema({
         require: true
     },
 
-    text: {
+    userComment: {
         type: String,
         require: true,
         maxlength: 1000
@@ -61,4 +61,5 @@ const confessSchema = new Schema({
 
 const Comment = models.Comment || model("Comment", commentSchema);
 const Confess = models.Confess || model("Confess", confessSchema);
-export default Confess;
+
+export { Comment, Confess};

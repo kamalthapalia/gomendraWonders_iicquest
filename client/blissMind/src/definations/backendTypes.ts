@@ -13,7 +13,7 @@ export interface BlogType extends JournalType{
 export type CommentType = {
     commenterId: string,
     username: string,
-    text: string,
+    userComment: string,
     createdAt: Date,
     updatedAt: Date
 }

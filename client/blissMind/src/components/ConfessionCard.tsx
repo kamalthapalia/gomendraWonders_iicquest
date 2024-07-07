@@ -26,6 +26,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
         confession,
         setNumOfReaction,
         numOfReaction,
+        // openPost,
         setOpenPost,
         reaction,
         setReaction
@@ -37,7 +38,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
             
 
             {openPost &&
-                <div className={`py-20 fixed inset-0 w-full pb-8 overflow-y-scroll backdrop-blur h-full bg-gray-600/30`}>
+                <div className={`z-50 py-20 fixed inset-0 w-full pb-8 overflow-y-scroll backdrop-blur h-full bg-gray-600/30`}>
                     <div className={`flex justify-end sticky top-0`}>
                         <div onClick={handleModalClose} className={`p-3 shadow cursor-pointer backdrop-blur m-3 rounded-full text-2xl bg-white`}>
                             <AiOutlineClose />
@@ -46,7 +47,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
 
                     <div className={`h-[40vh] max-h-[60vh] max-w-[900px] p-5 rounded container mx-auto bg-gray-50`}>
                         <ConfessionCardFrame {...confessionCardFrameProps} />
-                        <ConfessionCommentFrame confessionId={confession._id} comments={confession.comments} />
+                        <ConfessionCommentFrame confessionId={confession._id}/>
                     </div>
                 </div>
             }

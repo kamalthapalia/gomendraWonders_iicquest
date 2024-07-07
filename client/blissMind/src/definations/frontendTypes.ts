@@ -36,6 +36,7 @@ enum Reaction { NONE, LIKE, DISLIKE }
     numOfReaction: NumOfReactionType,
     setNumOfReaction: Dispatch<SetStateAction<NumOfReactionType>>,
     setOpenPost: Dispatch<SetStateAction<boolean>>,
+    // openPost: boolean,
     reaction: Reaction,
     setReaction: Dispatch<SetStateAction<Reaction>>
 }

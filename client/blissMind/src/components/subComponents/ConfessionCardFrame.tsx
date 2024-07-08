@@ -10,11 +10,6 @@ import { serverApi, useAuth } from "../../Auth/AuthProvider";
 import { useEffect } from "react";
 
 
-const globalReactionCount = {
-    like: 0,
-    dislike: 0
-}
-let globalConfessionReaction = 0
 
 const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, setNumOfReaction, numOfReaction, setOpenPost, reaction, setReaction, sideEffectOnUnmount }) => {
     const navigate = useNavigate();
@@ -23,18 +18,20 @@ const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, s
     // client handler + helper
     const handleLike = () => {
         const addLike = (reaction != Reaction.LIKE);
-
+        
         setNumOfReaction(prev => ({
+            ...prev, // for comment
             like: addLike ? prev.like + 1 : prev.like - 1,
             dislike: reaction == Reaction.DISLIKE ? prev.dislike - 1 : prev.dislike
         }));
         setReaction(addLike ? Reaction.LIKE : Reaction.NONE);
     }
-
+    
     const handleDislike = () => {
         const addDislike = (reaction != Reaction.DISLIKE);
 
         setNumOfReaction(prev => ({
+            ...prev, // for comment
             like: reaction == Reaction.LIKE ? prev.like - 1 : prev.like,
             dislike: addDislike ? prev.dislike + 1 : prev.dislike - 1
         }));
@@ -47,7 +44,7 @@ const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, s
     }
 
     const changesInReactionCount = (): boolean => {
-        return confession.like.length != globalReactionCount.like || confession.dislike.length != globalReactionCount.dislike
+        return confession.like.length != numOfReaction.like || confession.dislike.length != numOfReaction.dislike
     }
 
     // server handler
@@ -58,24 +55,26 @@ const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, s
 
     useEffect(() => {
         return () => {
+            console.log(numOfReaction, confession.like.length, confession.dislike.length) 
             if (sideEffectOnUnmount && changesInReactionCount()) {
-                
-                const postReaction = async() => {
-                    const action = Reaction[globalConfessionReaction]; // dang, my 2 celled brain
+
+                const postReaction = async () => {
+                    const action = Reaction[reaction]; // dang, my 2 celled brain
                     try {
                         await serverApi.post(`/confess/${confession._id}/reaction`, { action })
                     } catch (error) {
                         console.log('Error on updating post')
                     }
                 }
-
                 postReaction();
             }
         }
-    }, [])
+    }, [numOfReaction, reaction])
 
 
     useEffect(() => {
+        if (!sideEffectOnUnmount) return;
+
         if (confession.like.includes(user.userId)) {
             setReaction(Reaction.LIKE)
         } else if (confession.dislike.includes(user.userId)) {
@@ -85,11 +84,11 @@ const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, s
         }
     }, [])
 
-    useEffect(() => {
-        globalConfessionReaction = reaction
-        globalReactionCount.like = numOfReaction.like
-        globalReactionCount.dislike = numOfReaction.dislike
-    }, [reaction])
+    // useEffect(() => {
+    //     globalConfessionReaction = reaction
+    //     globalReactionCount.like = numOfReaction.like
+    //     globalReactionCount.dislike = numOfReaction.dislike
+    // }, [reaction, numOfReaction])
 
     return (
         <div className="relative bg-gray-50 border border-blue-100 rounded p-3 flex flex-col gap-2">
@@ -121,7 +120,7 @@ const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, s
                     </div>
                     <div onClick={handleOpenPost} className={`flex items-center gap-2 hover:bg-emerald-100 py-2 px-4 rounded-full cursor-pointer`}>
                         <AiOutlineComment className={`text-lg`} />
-                        <p className={`font-semibold text-sm`}>{confession.comments.length || 0} comments</p>
+                        <p className={`font-semibold text-sm`}>{numOfReaction.comment} comments</p>
                     </div>
                 </div>
             </div>

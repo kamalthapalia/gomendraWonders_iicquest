@@ -1,23 +1,25 @@
 import {Comment, Confess} from "../models/confess.model.js";
+// import {getFromRedis, setInRedis, updateInRedis} from "../utils/redisHelper.js";
 import {getFromRedis, setInRedis} from "../utils/redisHelper.js";
 
 import * as ConfessType from "../definations/confessType.js";
+import {RedisConfessionKeys} from "../utils/redisHelper.js";
+import {redisClient} from "../index.js";
 
 const confessController = {
 	getAllConfessions: async (req, res) => {
-		const cacheKey = "getAllconfessions";
+		const cacheKey = RedisConfessionKeys.allConfessions;
 
 		try {
 			// if have cache, give cache
-			// const cacheData = await getFromRedis(cacheKey);
-			// if (cacheData) {
-			// 	return res.status(200).json({data: cacheData});
-			// }
-
+			const cacheData = await getFromRedis(cacheKey);
+			if (cacheData) {
+				return res.status(200).json({data: cacheData});
+			}
 			// no cache,
 			const data = await Confess.find().sort({updatedAt: -1});
 			if (data) {
-				await setInRedis(cacheKey, data); // if we no data, get data and kashee it.
+				await setInRedis(cacheKey, data, 60); // if we no data, get data and kashee it.
 				return res.status(200).json({data});
 			}
 		} catch (error) {
@@ -27,7 +29,7 @@ const confessController = {
 	},
 	getUserConfessions: async (req, res) => {
 		const {userId} = req;
-		const cacheKey = `confession_${userId}`;
+		const cacheKey = RedisConfessionKeys.aUserConfessions(userId);
 
 		try {
 			// hell ya! we got cached data
@@ -39,7 +41,7 @@ const confessController = {
 			// We didn't ? well, we gonna make it
 			const data = await Confess.find({userId}).sort({updatedAt: -1});
 			if (data) {
-				await setInRedis(cacheKey, data, 600);
+				await setInRedis(cacheKey, data, 6000);
 				return res.status(200).json({data});
 			}
 		} catch (error) {
@@ -47,11 +49,11 @@ const confessController = {
 			return res.status(500).json({message: error.message});
 		}
 	},
+	// not in use
 	getSingleConfession: async (req, res) => {
 		try {
 			const data = await Confess.findById(req.params.id);
 			if (data) return res.status(200).json({data});
-			console.log(data);
 		} catch (error) {
 			res.status(500).json({message: "Internal Server Error Occured!"});
 		}
@@ -69,9 +71,41 @@ const confessController = {
 				fullName: username,
 			});
 			const data = await newConfess.save();
+
 			res.status(200).json({message: "Confession saved successfully", data});
+
+			// purge in redis
+			redisClient.del(RedisConfessionKeys.allConfessions);
+			redisClient.del(RedisConfessionKeys.aUserConfessions(userId));
 		} catch (error) {
 			res.status(500).json({error: error.message});
+		}
+	},
+
+	getComments: async (req, res) => {
+		const {confessionId} = req.params;
+		const cacheKey = RedisConfessionKeys.allCommentsInConfession(confessionId);
+
+		try {
+			const cacheData = await getFromRedis(cacheKey);
+			if (cacheData) return res.status(200).json({data: cacheData});
+
+			const confession = await Confess.findById(confessionId);
+			if (!confession) {
+				return res.status(400).json({message: "No such confession exist!"});
+			}
+
+			const confessionCommentIds = confession.comments || [];
+
+			const allComments = await Comment.find({
+				_id: {$in: confessionCommentIds},
+			}).sort({updatedAt: -1});
+
+			// response
+			await setInRedis(cacheKey, allComments, 10800); // 3hr
+			res.status(200).json({data: allComments});
+		} catch (err) {
+			res.status(500).json({message: "Internal Server Error Occured!"});
 		}
 	},
 
@@ -80,6 +114,7 @@ const confessController = {
 		const {confessionId} = req.params;
 
 		const {userComment} = req.body;
+		const cacheKey = RedisConfessionKeys.allCommentsInConfession(confessionId);
 
 		try {
 			const confessionCheck = await Confess.findById(confessionId);
@@ -100,32 +135,17 @@ const confessController = {
 				{$push: {comments: newSavedComment._id}}
 			);
 
-			return res
+			res
 				.status(200)
 				.json({message: "Comment sent successfully", data: newSavedComment});
+
+			// updateInRedis(cacheKey, newSavedComment, 1200);
+			redisClient.del(
+				RedisConfessionKeys.allCommentsInConfession(confessionId)
+			);
 		} catch (error) {
+			console.log(error)
 			return res.status(500).json({message: "Internal Server Error Occured!"});
-		}
-	},
-
-	getComments: async (req, res) => {
-		const {confessionId} = req.params;
-
-		try {
-			const confession = await Confess.findById(confessionId);
-			if (!confession) {
-				return res.status(400).json({message: "No such confession exist!"});
-			}
-
-			const confessionCommentIds = confession.comments || [];
-
-			const allComments = await Comment.find({
-				_id: {$in: confessionCommentIds},
-			}).sort({updatedAt: -1});
-
-			return res.status(200).json({data: allComments});
-		} catch (err) {
-			res.status(500).json({message: "Internal Server Error Occured!"});
 		}
 	},
 
@@ -195,9 +215,9 @@ const confessController = {
 				);
 			} else if (action === "NONE") {
 				await Confess.updateOne(
-					{_id : confessionId},
+					{_id: confessionId},
 					{$pull: {like: userId, dislike: userId}}
-				)
+				);
 			} else {
 				return res.status(400).json({message: `Invalid action: ${action}`});
 			}

@@ -2,17 +2,20 @@
 import Comment from "./Comment";
 
 // types + utils
+import type{ NumOfReactionType } from "../definations/frontendTypes";
 import { CommentType } from "../definations/backendTypes";
+
 import { AiOutlineSend } from "react-icons/ai";
 import { serverApi } from "../Auth/AuthProvider";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 
 interface ConfessionProps {
     confessionId: string,
+    setNumOfReaction: Dispatch<SetStateAction<NumOfReactionType>>
 }
 
-const ConfessionCommentFrame: React.FC<ConfessionProps> = ({ confessionId }) => {
+const ConfessionCommentFrame: React.FC<ConfessionProps> = ({ confessionId, setNumOfReaction }) => {
     const [comments, setComments] = useState<CommentType[]>([]);
     const [userComment, setUserComment] = useState('');
     
@@ -21,6 +24,7 @@ const ConfessionCommentFrame: React.FC<ConfessionProps> = ({ confessionId }) => 
             try {
                 const res = await serverApi.get(`/confess/comments/${confessionId}`)
                 setComments(res.data.data);
+                setNumOfReaction(prev=> ({...prev, comment: res.data.data.length}))
             } catch (error) {
                 console.log(error)
             }
@@ -36,9 +40,11 @@ const ConfessionCommentFrame: React.FC<ConfessionProps> = ({ confessionId }) => 
     const handleCommentSend = async() => {
         if (userComment){
             try {
-                console.log(userComment)
+                // console.log(userComment)
                 const res = await serverApi.post(`/confess/comment/${confessionId}`, {userComment});
+                setNumOfReaction(prev=> ({...prev, comment: prev.comment+1}))
                 setComments(prev=> [res.data.data, ...prev]);
+                setUserComment('');
             } catch (error) {
                 console.log(error)
             }

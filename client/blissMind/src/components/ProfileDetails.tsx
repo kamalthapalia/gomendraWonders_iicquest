@@ -4,8 +4,6 @@ import { useAuth } from "../Auth/AuthProvider";
 import LogoutModal from "./subComponents/LogoutModal";
 
 
-
-
 const ProfileDetails = () => {
     const { user } = useAuth();
     const [logout, setLogout] = useState(false);

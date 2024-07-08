@@ -28,7 +28,8 @@ export interface UserType {
   // props and others
   export type NumOfReactionType = {
     like: number,
-    dislike: number
+    dislike: number,
+    comment: number
 }
   enum Reaction { NONE, LIKE, DISLIKE }
   

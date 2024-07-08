@@ -20,7 +20,8 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
 
     const [numOfReaction, setNumOfReaction] = useState({
         like: confession.like.length,
-        dislike: confession.dislike.length
+        dislike: confession.dislike.length,
+        comment: confession.comments.length
     })
 
     const confessionCardFrameProps = {
@@ -48,7 +49,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
 
                     <div className={`h-[40vh] max-h-[60vh] max-w-[900px] p-5 rounded container mx-auto bg-gray-50`}>
                         <ConfessionCardFrame {...confessionCardFrameProps} sideEffectOnUnmount={false} />
-                        <ConfessionCommentFrame confessionId={confession._id}/>
+                        <ConfessionCommentFrame confessionId={confession._id} setNumOfReaction={setNumOfReaction}/>
                     </div>
                 </div>
             }

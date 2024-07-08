@@ -26,11 +26,12 @@ const Confessions = () => {
             }
         };
         fetchConfessions();
-    }, [create]);
+    }, []);
+
 
     return (
         <>
-            {create && <CreateConfession setCreate={setCreate} />}
+            {create && <CreateConfession setCreate={setCreate} setConfessions={setConfessions} />}
             <div className={`container mx-auto my-2 w-full max-w-[900px] text-justify flex flex-col gap-5`}>
                 <div onClick={() => { setCreate(true) }} className={`flex gap-3 border bg-gray-100 border-blue-100 rounded p-2 items-center`}>
                     <img src="https://avatar.iran.liara.run/public" className={`w-14 h-14 bg-red-200 rounded-full`} alt="" />

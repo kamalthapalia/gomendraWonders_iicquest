@@ -2,8 +2,11 @@ import { Dispatch, FormEvent, SetStateAction, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useAuth } from '../../Auth/AuthProvider';
 import { serverApi } from '../../Auth/AuthProvider';
+import { ConfessionType } from "../../definations/backendTypes";
 
-const CreateConfession = ({ setCreate }: { setCreate: Dispatch<SetStateAction<boolean>> }) => {
+type Setter<T> = Dispatch<SetStateAction<T>>;
+
+const CreateConfession = ({ setCreate, setConfessions }: { setCreate: Setter<boolean>, setConfessions: Setter<ConfessionType[]>  }) => {
     const { user } = useAuth();
     const [confession, setConfession] = useState('');
     const [isanonymous, setIsAnonymous] = useState(false);
@@ -18,10 +21,12 @@ const CreateConfession = ({ setCreate }: { setCreate: Dispatch<SetStateAction<bo
 
         try {
             if (confession) {
-                await serverApi.post('/confess', {
+                const res = await serverApi.post('/confess', {
                     description: confession,
                     isanonymous,
                 });
+                const newConfession = res.data.data;
+                setConfessions(prev => [newConfession, ...prev]);
                 setCreate(false);
             }
         } catch (error) {

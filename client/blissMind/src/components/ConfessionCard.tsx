@@ -9,6 +9,7 @@ import ConfessionCommentFrame from "./ConfessionCommentFrame.tsx";
 export enum Reaction { NONE, LIKE, DISLIKE }
 
 const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
+
     const [openPost, setOpenPost] = useState(false);
     const [reaction, setReaction] = useState<Reaction>(Reaction.NONE);
 
@@ -18,8 +19,8 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
     }
 
     const [numOfReaction, setNumOfReaction] = useState({
-        like: confession.like,
-        dislike: confession.dislike
+        like: confession.like.length,
+        dislike: confession.dislike.length
     })
 
     const confessionCardFrameProps = {
@@ -34,7 +35,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
 
     return (
         <>
-            <ConfessionCardFrame {...confessionCardFrameProps} />
+            <ConfessionCardFrame {...confessionCardFrameProps} sideEffectOnUnmount/>
             
 
             {openPost &&
@@ -46,7 +47,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
                     </div>
 
                     <div className={`h-[40vh] max-h-[60vh] max-w-[900px] p-5 rounded container mx-auto bg-gray-50`}>
-                        <ConfessionCardFrame {...confessionCardFrameProps} />
+                        <ConfessionCardFrame {...confessionCardFrameProps} sideEffectOnUnmount={false} />
                         <ConfessionCommentFrame confessionId={confession._id}/>
                     </div>
                 </div>

@@ -1,10 +1,25 @@
 import {Comment, Confess} from "../models/confess.model.js";
+import {getFromRedis, setInRedis} from "../utils/redisHelper.js";
+
+import * as ConfessType from "../definations/confessType.js";
 
 const confessController = {
 	getAllConfessions: async (req, res) => {
+		const cacheKey = "getAllconfessions";
+
 		try {
+			// if have cache, give cache
+			// const cacheData = await getFromRedis(cacheKey);
+			// if (cacheData) {
+			// 	return res.status(200).json({data: cacheData});
+			// }
+
+			// no cache,
 			const data = await Confess.find().sort({updatedAt: -1});
-			if (data) return res.status(200).json({data});
+			if (data) {
+				await setInRedis(cacheKey, data); // if we no data, get data and kashee it.
+				return res.status(200).json({data});
+			}
 		} catch (error) {
 			console.log(error);
 			return res.status(500).json({message: error.message});
@@ -12,9 +27,21 @@ const confessController = {
 	},
 	getUserConfessions: async (req, res) => {
 		const {userId} = req;
+		const cacheKey = `confession_${userId}`;
+
 		try {
+			// hell ya! we got cached data
+			const cacheData = await getFromRedis(cacheKey);
+			if (cacheData) {
+				return res.status(200).json({data: cacheData});
+			}
+
+			// We didn't ? well, we gonna make it
 			const data = await Confess.find({userId}).sort({updatedAt: -1});
-			if (data) return res.status(200).json({data});
+			if (data) {
+				await setInRedis(cacheKey, data, 600);
+				return res.status(200).json({data});
+			}
 		} catch (error) {
 			console.log(error);
 			return res.status(500).json({message: error.message});
@@ -30,7 +57,6 @@ const confessController = {
 		}
 	},
 	postConfession: async (req, res) => {
-		// const userId = req.userId;
 		const {userId, fullName} = req;
 
 		try {
@@ -42,8 +68,8 @@ const confessController = {
 				userId,
 				fullName: username,
 			});
-			await newConfess.save();
-			res.status(200).json({message: "Confession saved successfully"});
+			const data = await newConfess.save();
+			res.status(200).json({message: "Confession saved successfully", data});
 		} catch (error) {
 			res.status(500).json({error: error.message});
 		}
@@ -58,9 +84,9 @@ const confessController = {
 		try {
 			const confessionCheck = await Confess.findById(confessionId);
 			if (!confessionCheck) {
-				return res.status(400).json({message: "No such confession exist!"})
+				return res.status(400).json({message: "No such confession exist!"});
 			}
-		
+
 			const newComment = await Comment({
 				commenterId: userId,
 				username: fullName,
@@ -74,31 +100,31 @@ const confessController = {
 				{$push: {comments: newSavedComment._id}}
 			);
 
-			return res.status(200).json({message: "Comment sent successfully", data: newSavedComment});
-
+			return res
+				.status(200)
+				.json({message: "Comment sent successfully", data: newSavedComment});
 		} catch (error) {
 			return res.status(500).json({message: "Internal Server Error Occured!"});
 		}
 	},
 
-	getComments: async(req, res) => {
+	getComments: async (req, res) => {
 		const {confessionId} = req.params;
 
 		try {
 			const confession = await Confess.findById(confessionId);
 			if (!confession) {
-				return res.status(400).json({message: "No such confession exist!"})
+				return res.status(400).json({message: "No such confession exist!"});
 			}
 
 			const confessionCommentIds = confession.comments || [];
 
 			const allComments = await Comment.find({
-				_id: {$in: confessionCommentIds}
+				_id: {$in: confessionCommentIds},
 			}).sort({updatedAt: -1});
 
 			return res.status(200).json({data: allComments});
-		}
-		catch(err){
+		} catch (err) {
 			res.status(500).json({message: "Internal Server Error Occured!"});
 		}
 	},
@@ -110,10 +136,6 @@ const confessController = {
 			const {description, isanonymous} = req.body;
 			const username = isanonymous ? "Anonymous" : fullName;
 
-			// await Confess.findByIdAndUpdate(
-			//     id,
-			//     { description, isanonymous, fullName: username },
-			// )
 			// ensures that the changee is the user him/herself. hah! mero angreji
 			const updatedConfession = await Confess.findOneAndUpdate(
 				{_id: id, userId},
@@ -141,15 +163,46 @@ const confessController = {
 			);
 
 			if (!deletedConfession) {
-				return res
-					.status(400)
-					.json({
-						message:
-							"You godDamn person. Why tryin' deletin' others confession?",
-					});
+				return res.status(400).json({
+					message: "You godDamn person. Why tryin' deletin' others confession?",
+				});
 			}
 
 			res.status(200).json({message: "Confession Deleted Successfully"});
+		} catch (error) {
+			res.status(500).json({message: "Internal Server Error Occured!"});
+		}
+	},
+
+	postConfessionReaction: async (req, res) => {
+		const {userId} = req;
+		const {confessionId} = req.params;
+
+		/** @type {ConfessType.ReactionBody} */
+		const {action} = req.body;
+
+		let updatedReaction;
+		try {
+			if (action == "LIKE") {
+				await Confess.updateOne(
+					{_id: confessionId},
+					{$addToSet: {like: userId}, $pull: {dislike: userId}}
+				);
+			} else if (action === "DISLIKE") {
+				await Confess.updateOne(
+					{_id: confessionId},
+					{$addToSet: {dislike: userId}, $pull: {like: userId}}
+				);
+			} else if (action === "NONE") {
+				await Confess.updateOne(
+					{_id : confessionId},
+					{$pull: {like: userId, dislike: userId}}
+				)
+			} else {
+				return res.status(400).json({message: `Invalid action: ${action}`});
+			}
+
+			return res.status(200).json({message: "Reaction Updated Successfully"});
 		} catch (error) {
 			res.status(500).json({message: "Internal Server Error Occured!"});
 		}

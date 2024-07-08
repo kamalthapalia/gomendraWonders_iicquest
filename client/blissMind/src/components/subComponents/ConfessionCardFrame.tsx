@@ -6,35 +6,90 @@ import { useNavigate } from "react-router-dom";
 import { Reaction } from "../ConfessionCard";
 import { timeParser } from "../../utils/timeParser";
 import { ConfessionCardFrameProps } from "../../definations/frontendTypes";
-import { useAuth } from "../../Auth/AuthProvider";
+import { serverApi, useAuth } from "../../Auth/AuthProvider";
+import { useEffect } from "react";
 
-const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, setNumOfReaction, numOfReaction, setOpenPost, reaction, setReaction }) => {
+
+const globalReactionCount = {
+    like: 0,
+    dislike: 0
+}
+let globalConfessionReaction = 0
+
+const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, setNumOfReaction, numOfReaction, setOpenPost, reaction, setReaction, sideEffectOnUnmount }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
+    // client handler + helper
     const handleLike = () => {
-        setReaction(Reaction.LIKE)
-        setNumOfReaction({
-            like: confession.like + 1,
-            dislike: confession.dislike
-        })
+        const addLike = (reaction != Reaction.LIKE);
+
+        setNumOfReaction(prev => ({
+            like: addLike ? prev.like + 1 : prev.like - 1,
+            dislike: reaction == Reaction.DISLIKE ? prev.dislike - 1 : prev.dislike
+        }));
+        setReaction(addLike ? Reaction.LIKE : Reaction.NONE);
     }
+
     const handleDislike = () => {
-        setReaction(Reaction.DISLIKE)
-        setNumOfReaction({
-            like: confession.like,
-            dislike: confession.dislike + 1
-        });
+        const addDislike = (reaction != Reaction.DISLIKE);
+
+        setNumOfReaction(prev => ({
+            like: reaction == Reaction.LIKE ? prev.like - 1 : prev.like,
+            dislike: addDislike ? prev.dislike + 1 : prev.dislike - 1
+        }));
+        setReaction(addDislike ? Reaction.DISLIKE : Reaction.NONE);
     }
 
     const handleOpenPost = () => {
         setOpenPost(true)
         document.body.style.overflowY = "hidden";
     }
+
+    const changesInReactionCount = (): boolean => {
+        return confession.like.length != globalReactionCount.like || confession.dislike.length != globalReactionCount.dislike
+    }
+
+    // server handler
     const handleConfessionEdit = () => {
         navigate(`/confession/${confession._id}`);
         document.body.style.overflowY = "scroll";
     }
+
+    useEffect(() => {
+        return () => {
+            if (sideEffectOnUnmount && changesInReactionCount()) {
+                
+                const postReaction = async() => {
+                    const action = Reaction[globalConfessionReaction]; // dang, my 2 celled brain
+                    try {
+                        await serverApi.post(`/confess/${confession._id}/reaction`, { action })
+                    } catch (error) {
+                        console.log('Error on updating post')
+                    }
+                }
+
+                postReaction();
+            }
+        }
+    }, [])
+
+
+    useEffect(() => {
+        if (confession.like.includes(user.userId)) {
+            setReaction(Reaction.LIKE)
+        } else if (confession.dislike.includes(user.userId)) {
+            setReaction(Reaction.DISLIKE)
+        } else {
+            setReaction(Reaction.NONE)
+        }
+    }, [])
+
+    useEffect(() => {
+        globalConfessionReaction = reaction
+        globalReactionCount.like = numOfReaction.like
+        globalReactionCount.dislike = numOfReaction.dislike
+    }, [reaction])
 
     return (
         <div className="relative bg-gray-50 border border-blue-100 rounded p-3 flex flex-col gap-2">

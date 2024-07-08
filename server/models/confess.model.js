@@ -40,15 +40,15 @@ const confessSchema = new Schema({
         default: false
     }, 
 
-    like: {
-        type: Number,
-        default: 0
-    },
+    like: [{
+        type: Types.ObjectId,
+        ref: "User"
+    }],
 
-    dislike: {
-        type: Number,
-        default: 0
-    },
+    dislike: [{
+        type: Types.ObjectId,
+        ref: "User"
+    }],
 
     comments: [
         {

@@ -26,17 +26,18 @@ export interface UserType {
   }
  
   // props and others
-  type NumOfReactionType = {
+  export type NumOfReactionType = {
     like: number,
     dislike: number
 }
-enum Reaction { NONE, LIKE, DISLIKE }
+  enum Reaction { NONE, LIKE, DISLIKE }
+  
   export interface ConfessionCardFrameProps {
     confession: ConfessionType,
     numOfReaction: NumOfReactionType,
     setNumOfReaction: Dispatch<SetStateAction<NumOfReactionType>>,
     setOpenPost: Dispatch<SetStateAction<boolean>>,
-    // openPost: boolean,
+    sideEffectOnUnmount: boolean,
     reaction: Reaction,
     setReaction: Dispatch<SetStateAction<Reaction>>
 }

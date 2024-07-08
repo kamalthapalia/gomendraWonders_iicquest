@@ -26,7 +26,7 @@ export interface ConfessionType {
     fullName: string;
     createdAt: Date;
     updatedAt: Date;
-    like: number;
-    dislike: number;
+    like: string[];
+    dislike: string[];
     comments: CommentType[];
 }

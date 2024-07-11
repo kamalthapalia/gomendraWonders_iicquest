@@ -62,8 +62,8 @@ const UpdateConfession = () => {
                     </textarea>
 
                     <div className="confession-type | center-child gap-2">
-                        <input type="checkbox" id="anonymous-post" defaultChecked={isAnonymous}
-                            onClick={() => setIsAnonymous(prev => !prev)}
+                        <input type="checkbox" id="anonymous-post" checked={isAnonymous}
+                            onChange={() => setIsAnonymous(prev => !prev)}
                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer" />
                         <label htmlFor="anonymous-post" className="text-gray-700">Anonymous Post</label>
                     </div>

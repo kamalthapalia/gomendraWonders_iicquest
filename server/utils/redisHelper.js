@@ -1,8 +1,9 @@
 import { redisClient } from "../index.js";
 
-export const RedisConfessionKeys = {
-    allConfessions: "getAllconfessions",
-    aUserConfessions: (userId) => `confession_${userId}`,
+export const RedisKeys = {
+    aUserJournals: (userId) => `journal:user:${userId}`,
+    aProBlogs: (userId) => `blog:professional:${userId}`,
+    aUserConfessions: (userId) => `confession:user:${userId}`,
     allCommentsInConfession: (interactionId) => `confession:comments:${interactionId}`,
     allReactionsInConfession: (reactionId) => `confession:reactions:${reactionId}`,
 }

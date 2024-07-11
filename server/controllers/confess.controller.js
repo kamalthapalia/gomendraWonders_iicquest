@@ -1,25 +1,15 @@
 import {Comment, Confess, Reaction} from "../models/confess.model.js";
-// import {getFromRedis, setInRedis, updateInRedis} from "../utils/redisHelper.js";
 import {getFromRedis, setInRedis} from "../utils/redisHelper.js";
 
 import * as ConfessType from "../definations/confessType.js";
-import {RedisConfessionKeys} from "../utils/redisHelper.js";
+import {RedisKeys} from "../utils/redisHelper.js";
 import {redisClient} from "../index.js";
 
 const confessController = {
 	getAllConfessions: async (req, res) => {
-		const cacheKey = RedisConfessionKeys.allConfessions;
-
 		try {
-			// if have cache, give cache
-			const cacheData = await getFromRedis(cacheKey);
-			if (cacheData) {
-				return res.status(200).json({data: cacheData});
-			}
-			// no cache,
 			const data = await Confess.find().sort({createdAt: -1});
 			if (data) {
-				await setInRedis(cacheKey, data, 60); // if we no data, get data and kashee it.
 				return res.status(200).json({data});
 			}
 		} catch (error) {
@@ -29,7 +19,7 @@ const confessController = {
 	},
 	getUserConfessions: async (req, res) => {
 		const {userId} = req;
-		const cacheKey = RedisConfessionKeys.aUserConfessions(userId);
+		const cacheKey = RedisKeys.aUserConfessions(userId);
 
 		try {
 			// hell ya! we got cached data
@@ -64,7 +54,6 @@ const confessController = {
 		try {
 			const reactionObj = new Reaction({});
 			const newReactionObj = await reactionObj.save();
-			console.log(newReactionObj);
 
 			const {description, isanonymous} = req.body;
 			const username = isanonymous ? "Anonymous" : fullName;
@@ -80,8 +69,7 @@ const confessController = {
 			res.status(200).json({message: "Confession saved successfully", data});
 
 			// purge in redis
-			redisClient.del(RedisConfessionKeys.allConfessions);
-			redisClient.del(RedisConfessionKeys.aUserConfessions(userId));
+			redisClient.del(RedisKeys.aUserConfessions(userId));
 		} catch (error) {
 			res.status(500).json({error: error.message});
 		}
@@ -134,7 +122,7 @@ const confessController = {
 
 	getComments: async (req, res) => {
 		const {confessionId} = req.params;
-		const cacheKey = RedisConfessionKeys.allCommentsInConfession(confessionId);
+		const cacheKey = RedisKeys.allCommentsInConfession(confessionId);
 
 		try {
 			const cacheData = await getFromRedis(cacheKey);
@@ -164,7 +152,7 @@ const confessController = {
 		const {confessionId} = req.params;
 
 		const {userComment} = req.body;
-		const cacheKey = RedisConfessionKeys.allCommentsInConfession(confessionId);
+		const cacheKey = RedisKeys.allCommentsInConfession(confessionId);
 
 		try {
 			const confessionCheck = await Confess.findById(confessionId);
@@ -199,7 +187,7 @@ const confessController = {
 
 	getConfessionReaction: async (req, res) => {
 		const {reactionId} = req.params;
-		const cacheKey = RedisConfessionKeys.allReactionsInConfession(reactionId);
+		const cacheKey = RedisKeys.allReactionsInConfession(reactionId);
 
 		try {
 			const cacheData = await getFromRedis(cacheKey);
@@ -222,7 +210,7 @@ const confessController = {
 		const {userId} = req;
 		const {reactionId} = req.params;
 
-		const cacheKey = RedisConfessionKeys.allReactionsInConfession(reactionId);
+		const cacheKey = RedisKeys.allReactionsInConfession(reactionId);
 
 		/** @type {ConfessType.ReactionBody} */
 		const {action} = req.body;

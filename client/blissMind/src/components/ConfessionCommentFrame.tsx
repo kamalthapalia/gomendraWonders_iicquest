@@ -22,6 +22,7 @@ const ConfessionCommentFrame: React.FC<ConfessionProps> = ({ confessionId, setNu
     useEffect(()=> {
         const fetchComments = async() => {
             try {
+                console.log(confessionId)
                 const res = await serverApi.get(`/confess/comments/${confessionId}`)
                 setComments(res.data.data);
                 setNumOfReaction(prev=> ({...prev, comment: res.data.data.length}))
@@ -43,8 +44,8 @@ const ConfessionCommentFrame: React.FC<ConfessionProps> = ({ confessionId, setNu
                 // console.log(userComment)
                 const res = await serverApi.post(`/confess/comment/${confessionId}`, {userComment});
                 setNumOfReaction(prev=> ({...prev, comment: prev.comment+1}))
-                setComments(prev=> [res.data.data, ...prev]);
                 setUserComment('');
+                setComments(prev=> [res.data.data, ...prev]);
             } catch (error) {
                 console.log(error)
             }

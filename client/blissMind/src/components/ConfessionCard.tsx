@@ -27,7 +27,7 @@ const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
     const [numOfReaction, setNumOfReaction] = useState({
         like: 0,
         dislike: 0,
-        comment: 0
+        comment: confession.comments.length
     })
     
 

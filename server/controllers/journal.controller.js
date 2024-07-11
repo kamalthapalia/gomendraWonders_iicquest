@@ -1,15 +1,28 @@
+import { redisClient } from "../index.js";
 import Journal from "../models/journal.model.js";
+import { getFromRedis, RedisKeys, setInRedis } from "../utils/redisHelper.js";
 
 const journalController = {
     // get all blogs
     getJournals: async (req, res) => {
         // middleware will put userId in reqBody
         const {userId} = req;
+        const cacheKey = RedisKeys.aUserJournals(userId);
+
         try {
+            const cacheData = await getFromRedis(cacheKey);
+            if (cacheData) {
+                return res.status(200).json({data: cacheData});
+            }
+
             const data = await Journal.find({userId}).sort({updatedAt: -1});
-            return res.status(200).json({ data });
+            if (data){
+                await setInRedis(cacheKey, data, 86400*7); // 7day cache
+                return res.status(200).json({ data });
+            }
+            res.status(200).json({message: "No Journal Found!", data: []})
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return res.status(500).json({ message: "Internal Error Occured!" });
         }
     },
@@ -27,6 +40,7 @@ const journalController = {
     postJournal: async (req, res) => {
         // we'll get userId from auth middleware
         const userId = req.userId;
+        const cacheKey = RedisKeys.aUserJournals(userId);
 
         try {
             const { description } = req.body;
@@ -34,6 +48,7 @@ const journalController = {
             await newJournal.save();
             res.status(200).json({ message: "Journal Created Successfully" });
 
+            redisClient.del(cacheKey);
         } catch (error) {
             res.status(500).json({ message: "Internal Error Occured!" });
         }

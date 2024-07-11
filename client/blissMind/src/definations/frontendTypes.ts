@@ -1,4 +1,4 @@
-import type{ Dispatch, SetStateAction } from "react";
+import type{ Dispatch, MutableRefObject, SetStateAction } from "react";
 import type{ ConfessionType } from "./backendTypes";
 
 export type signUpType = {
@@ -31,8 +31,19 @@ export interface UserType {
     dislike: number,
     comment: number
 }
-  enum Reaction { NONE, LIKE, DISLIKE }
-  
+
+export enum Reaction { NONE, LIKE, DISLIKE }
+
+ export type reactionRefType = {
+    defaultLike: number,
+    defaultDislike: number,
+    userReaction: number,
+    numOfReaction: {
+        like: number,
+        dislike: number
+    }
+};
+
   export interface ConfessionCardFrameProps {
     confession: ConfessionType,
     numOfReaction: NumOfReactionType,
@@ -41,4 +52,5 @@ export interface UserType {
     sideEffectOnUnmount: boolean,
     reaction: Reaction,
     setReaction: Dispatch<SetStateAction<Reaction>>
+    reactionRef: MutableRefObject<reactionRefType>
 }

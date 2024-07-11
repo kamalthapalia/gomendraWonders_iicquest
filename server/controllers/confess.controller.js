@@ -1,4 +1,4 @@
-import {Comment, Confess} from "../models/confess.model.js";
+import {Comment, Confess, Reaction} from "../models/confess.model.js";
 // import {getFromRedis, setInRedis, updateInRedis} from "../utils/redisHelper.js";
 import {getFromRedis, setInRedis} from "../utils/redisHelper.js";
 
@@ -17,7 +17,7 @@ const confessController = {
 				return res.status(200).json({data: cacheData});
 			}
 			// no cache,
-			const data = await Confess.find().sort({updatedAt: -1});
+			const data = await Confess.find().sort({createdAt: -1});
 			if (data) {
 				await setInRedis(cacheKey, data, 60); // if we no data, get data and kashee it.
 				return res.status(200).json({data});
@@ -62,6 +62,10 @@ const confessController = {
 		const {userId, fullName} = req;
 
 		try {
+			const reactionObj = new Reaction({});
+			const newReactionObj = await reactionObj.save();
+			console.log(newReactionObj);
+
 			const {description, isanonymous} = req.body;
 			const username = isanonymous ? "Anonymous" : fullName;
 			const newConfess = new Confess({
@@ -69,6 +73,7 @@ const confessController = {
 				isanonymous,
 				userId,
 				fullName: username,
+				reactionId: newReactionObj._id,
 			});
 			const data = await newConfess.save();
 
@@ -79,6 +84,51 @@ const confessController = {
 			redisClient.del(RedisConfessionKeys.aUserConfessions(userId));
 		} catch (error) {
 			res.status(500).json({error: error.message});
+		}
+	},
+
+	updateConfessions: async (req, res) => {
+		const {fullName, userId} = req;
+		try {
+			const {id} = req.params;
+			const {description, isanonymous} = req.body;
+			const username = isanonymous ? "Anonymous" : fullName;
+
+			// ensures that the changee is the user him/herself. hah! mero angreji
+			const updatedConfession = await Confess.findOneAndUpdate(
+				{_id: id, userId},
+				{description, isanonymous, fullName: username},
+				{new: true} // Return the updated document
+			);
+
+			if (!updatedConfession) {
+				return res
+					.status(400)
+					.json({message: "Naughty, Naughty. Tryin' deleting others property"});
+			}
+			res.status(200).json({message: "Confession Updated Successfully"});
+		} catch (error) {
+			res.status(500).json({message: "Internal Server Error Occured!"});
+		}
+	},
+	deleteConfessions: async (req, res) => {
+		const {userId} = req;
+		try {
+			const {id} = req.params;
+			const deletedConfession = await Confess.findOneAndDelete(
+				{_id: id, userId},
+				{new: true}
+			);
+
+			if (!deletedConfession) {
+				return res.status(400).json({
+					message: "You godDamn person. Why tryin' deletin' others confession?",
+				});
+			}
+
+			res.status(200).json({message: "Confession Deleted Successfully"});
+		} catch (error) {
+			res.status(500).json({message: "Internal Server Error Occured!"});
 		}
 	},
 
@@ -140,89 +190,63 @@ const confessController = {
 				.json({message: "Comment sent successfully", data: newSavedComment});
 
 			// updateInRedis(cacheKey, newSavedComment, 1200);
-			redisClient.del(
-				RedisConfessionKeys.allCommentsInConfession(confessionId)
-			);
+			redisClient.del(cacheKey);
 		} catch (error) {
-			console.log(error)
+			console.log(error);
 			return res.status(500).json({message: "Internal Server Error Occured!"});
 		}
 	},
 
-	updateConfessions: async (req, res) => {
-		const {fullName, userId} = req;
+	getConfessionReaction: async (req, res) => {
+		const {reactionId} = req.params;
+		const cacheKey = RedisConfessionKeys.allReactionsInConfession(reactionId);
+
 		try {
-			const {id} = req.params;
-			const {description, isanonymous} = req.body;
-			const username = isanonymous ? "Anonymous" : fullName;
-
-			// ensures that the changee is the user him/herself. hah! mero angreji
-			const updatedConfession = await Confess.findOneAndUpdate(
-				{_id: id, userId},
-				{description, isanonymous, fullName: username},
-				{new: true} // Return the updated document
-			);
-
-			if (!updatedConfession) {
-				return res
-					.status(400)
-					.json({message: "Naughty, Naughty. Tryin' deleting others property"});
+			const cacheData = await getFromRedis(cacheKey);
+			if (cacheData) {
+				return res.status(200).json({data: cacheData});
 			}
-			res.status(200).json({message: "Confession Updated Successfully"});
+
+			// Get from db
+			const data = await Reaction.findOne({_id: reactionId});
+			if (!data) return res.status(200).json({message: "No Reaction found"});
+
+			res.status(200).json({data});
+			// update to cache
+			setInRedis(cacheKey, data);
 		} catch (error) {
 			res.status(500).json({message: "Internal Server Error Occured!"});
 		}
 	},
-	deleteConfessions: async (req, res) => {
-		const {userId} = req;
-		try {
-			const {id} = req.params;
-			const deletedConfession = await Confess.findOneAndDelete(
-				{_id: id, userId},
-				{new: true}
-			);
-
-			if (!deletedConfession) {
-				return res.status(400).json({
-					message: "You godDamn person. Why tryin' deletin' others confession?",
-				});
-			}
-
-			res.status(200).json({message: "Confession Deleted Successfully"});
-		} catch (error) {
-			res.status(500).json({message: "Internal Server Error Occured!"});
-		}
-	},
-
 	postConfessionReaction: async (req, res) => {
 		const {userId} = req;
-		const {confessionId} = req.params;
+		const {reactionId} = req.params;
+
+		const cacheKey = RedisConfessionKeys.allReactionsInConfession(reactionId);
 
 		/** @type {ConfessType.ReactionBody} */
 		const {action} = req.body;
 
-		let updatedReaction;
 		try {
 			if (action == "LIKE") {
-				await Confess.updateOne(
-					{_id: confessionId},
+				await Reaction.updateOne(
+					{_id: reactionId},
 					{$addToSet: {like: userId}, $pull: {dislike: userId}}
 				);
 			} else if (action === "DISLIKE") {
-				await Confess.updateOne(
-					{_id: confessionId},
+				await Reaction.updateOne(
+					{_id: reactionId},
 					{$addToSet: {dislike: userId}, $pull: {like: userId}}
 				);
-			} else if (action === "NONE") {
-				await Confess.updateOne(
-					{_id: confessionId},
+			} else {
+				await Reaction.updateOne(
+					{_id: reactionId},
 					{$pull: {like: userId, dislike: userId}}
 				);
-			} else {
-				return res.status(400).json({message: `Invalid action: ${action}`});
 			}
 
-			return res.status(200).json({message: "Reaction Updated Successfully"});
+			res.status(200).json({message: "Reaction Updated Successfully"});
+			redisClient.del(cacheKey);
 		} catch (error) {
 			res.status(500).json({message: "Internal Server Error Occured!"});
 		}

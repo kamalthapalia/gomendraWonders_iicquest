@@ -15,6 +15,9 @@ router.delete("/:id", fetchuser, confessController.deleteConfessions);
 router.get('/comments/:confessionId', fetchuser, confessController.getComments);
 router.post('/comment/:confessionId', fetchuser, confessController.postComment);
 
-router.post('/:confessionId/reaction', fetchuser, confessController.postConfessionReaction);
+router.get('/reactions/:reactionId', fetchuser, confessController.getConfessionReaction);
+router.post('/reaction/:reactionId', fetchuser, confessController.postConfessionReaction);
+// router.post('/:confessionId/reaction', fetchuser, confessController.postConfessionReaction);
+
 
 export default router;

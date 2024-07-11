@@ -19,6 +19,20 @@ const commentSchema = new Schema({
     }
 }, {timestamps: true})
 
+
+const confessReactionSchema = new Schema({
+    like: [{
+        type: Types.ObjectId,
+        ref: "User"
+    }],
+
+    dislike: [{
+        type: Types.ObjectId,
+        ref: "User"
+    }],
+})
+
+
 const confessSchema = new Schema({
     userId: {
         type: Types.ObjectId,
@@ -38,18 +52,12 @@ const confessSchema = new Schema({
         type: Boolean,
         require: true,
         default: false
-    }, 
+    },
 
-    like: [{
+    reactionId: {
         type: Types.ObjectId,
-        ref: "User"
-    }],
-
-    dislike: [{
-        type: Types.ObjectId,
-        ref: "User"
-    }],
-
+        ref: "Reaction"
+    },
     comments: [
         {
             type: Types.ObjectId,
@@ -61,5 +69,6 @@ const confessSchema = new Schema({
 
 const Comment = models.Comment || model("Comment", commentSchema);
 const Confess = models.Confess || model("Confess", confessSchema);
+const Reaction = models.Reaction || model("Reaction", confessReactionSchema);
 
-export { Comment, Confess};
+export { Comment, Confess, Reaction};

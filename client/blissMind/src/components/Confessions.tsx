@@ -1,21 +1,24 @@
 import { useState, useEffect } from "react";
 import { AiOutlineEdit } from "react-icons/ai";
+
+// components
 import CreateConfession from "./subComponents/CreateConfession";
 import ConfessionCard from "./ConfessionCard";
+
+// utils + types
 import { serverApi } from "../Auth/AuthProvider";
 import { ConfessionType } from "../definations/backendTypes";
 
 
-
 const Confessions = () => {
     const [create, setCreate] = useState(false);
-    const [confessions, setConfessions] = useState<ConfessionType[]>([]); // Initialize as an empty array with Confession type
+    const [confessions, setConfessions] = useState<ConfessionType[]>([]); 
 
     useEffect(() => {
         const fetchConfessions = async () => {
             try {
                 const response = await serverApi.get<{ data: ConfessionType[] }>('/confess');
-                console.log(response)
+                // console.log(response)
                 if (Array.isArray(response.data.data)) {
                     setConfessions(response.data.data); // Ensure the response is an array
                 } else {

@@ -3,48 +3,66 @@ import { IoHeartDislikeOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
 // enum + utils + type
-import { Reaction } from "../ConfessionCard";
 import { timeParser } from "../../utils/timeParser";
-import { ConfessionCardFrameProps } from "../../definations/frontendTypes";
+import { ConfessionCardFrameProps, Reaction } from "../../definations/frontendTypes";
 import { serverApi, useAuth } from "../../Auth/AuthProvider";
 import { useEffect } from "react";
 
 
 
-const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, setNumOfReaction, numOfReaction, setOpenPost, reaction, setReaction, sideEffectOnUnmount }) => {
+const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, setNumOfReaction, numOfReaction, setOpenPost, reaction, setReaction, sideEffectOnUnmount, reactionRef }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
-
+    
     // client handler + helper
+    const addOrRemoveReact = (add: boolean, reactionCount: number) => {
+        return add ? reactionCount + 1: reactionCount -1;
+    }
+    const syncReactChange = (oppositeReaction: Reaction, reactionCount: number) => {
+        return reaction == oppositeReaction ? reactionCount -1: reactionCount
+    }
+
     const handleLike = () => {
         const addLike = (reaction != Reaction.LIKE);
+        const changedLike = addOrRemoveReact(addLike, numOfReaction.like);
+        const changedDislike = syncReactChange(Reaction.DISLIKE, numOfReaction.dislike);
+
+        reactionRef.current.numOfReaction.like = changedLike;
+        reactionRef.current.numOfReaction.dislike = changedDislike;
         
         setNumOfReaction(prev => ({
-            ...prev, // for comment
-            like: addLike ? prev.like + 1 : prev.like - 1,
-            dislike: reaction == Reaction.DISLIKE ? prev.dislike - 1 : prev.dislike
+            comment: prev.comment,
+            like: changedLike,
+            dislike: changedDislike
         }));
-        setReaction(addLike ? Reaction.LIKE : Reaction.NONE);
+
+        const currentReaction = addLike ? Reaction.LIKE : Reaction.NONE;
+        setReaction(currentReaction);
+        reactionRef.current.userReaction = currentReaction
     }
     
     const handleDislike = () => {
         const addDislike = (reaction != Reaction.DISLIKE);
-
+        const changedLike = syncReactChange(Reaction.LIKE, numOfReaction.like);
+        const changedDislike = addOrRemoveReact(addDislike, numOfReaction.dislike);
+        
+        reactionRef.current.numOfReaction.like = changedLike;
+        reactionRef.current.numOfReaction.dislike = changedDislike;
+        
         setNumOfReaction(prev => ({
-            ...prev, // for comment
-            like: reaction == Reaction.LIKE ? prev.like - 1 : prev.like,
-            dislike: addDislike ? prev.dislike + 1 : prev.dislike - 1
+            comment: prev.comment,
+            like: changedLike,
+            dislike: changedDislike
         }));
-        setReaction(addDislike ? Reaction.DISLIKE : Reaction.NONE);
+        
+        const currentReaction = addDislike ? Reaction.DISLIKE : Reaction.NONE;
+        setReaction(currentReaction);
+        reactionRef.current.userReaction = currentReaction
     }
-
+    
     const handleOpenPost = () => {
         setOpenPost(true)
         document.body.style.overflowY = "hidden";
-    }
-
-    const changesInReactionCount = (): boolean => {
-        return confession.like.length != numOfReaction.like || confession.dislike.length != numOfReaction.dislike
     }
 
     // server handler
@@ -55,13 +73,18 @@ const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, s
 
     useEffect(() => {
         return () => {
-            console.log(numOfReaction, confession.like.length, confession.dislike.length) 
-            if (sideEffectOnUnmount && changesInReactionCount()) {
+            const {like, dislike} = reactionRef.current.numOfReaction;
+            const {defaultDislike, defaultLike, userReaction} = reactionRef.current;
+
+            // checks if the reaction count from fetched is changed or not
+            const changeInReaction = defaultLike != like || defaultDislike != dislike;
+
+            if (sideEffectOnUnmount && changeInReaction) {
 
                 const postReaction = async () => {
-                    const action = Reaction[reaction]; // dang, my 2 celled brain
+                    const action = Reaction[userReaction]; // dang, my 2 celled brain
                     try {
-                        await serverApi.post(`/confess/${confession._id}/reaction`, { action })
+                        await serverApi.post(`/confess/reaction/${confession.reactionId}`, { action })
                     } catch (error) {
                         console.log('Error on updating post')
                     }
@@ -69,26 +92,8 @@ const ConfessionCardFrame: React.FC<ConfessionCardFrameProps> = ({ confession, s
                 postReaction();
             }
         }
-    }, [numOfReaction, reaction])
-
-
-    useEffect(() => {
-        if (!sideEffectOnUnmount) return;
-
-        if (confession.like.includes(user.userId)) {
-            setReaction(Reaction.LIKE)
-        } else if (confession.dislike.includes(user.userId)) {
-            setReaction(Reaction.DISLIKE)
-        } else {
-            setReaction(Reaction.NONE)
-        }
     }, [])
 
-    // useEffect(() => {
-    //     globalConfessionReaction = reaction
-    //     globalReactionCount.like = numOfReaction.like
-    //     globalReactionCount.dislike = numOfReaction.dislike
-    // }, [reaction, numOfReaction])
 
     return (
         <div className="relative bg-gray-50 border border-blue-100 rounded p-3 flex flex-col gap-2">

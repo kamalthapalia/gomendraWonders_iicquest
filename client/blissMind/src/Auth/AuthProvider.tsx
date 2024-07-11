@@ -1,7 +1,7 @@
 import React, { createContext, useEffect } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { AuthContextProps, signUpType, UserType } from '../definations/frontendTypes';
-import useUserStorage from '../Hooks/useUserStorage';
+import useUserStorage from '../Hooks/useUserStorage.ts';
 
 // serverApi
 export const serverApi = axios.create({

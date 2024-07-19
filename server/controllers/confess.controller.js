@@ -7,10 +7,17 @@ import {redisClient} from "../index.js";
 
 const confessController = {
 	getAllConfessions: async (req, res) => {
+		const { cursor } = req.query;
+		const limit = 4;
+
+		const query = cursor ? { _id: { $lt: cursor } } : {};
+
 		try {
-			const data = await Confess.find().sort({createdAt: -1});
+			const data = await Confess.find(query).sort({createdAt: -1}).limit(limit);
+			const nextCursor = data.length === limit ? data[data.length - 1]._id : null; // for next pagination
+
 			if (data) {
-				return res.status(200).json({data});
+				return res.status(200).json({data, nextCursor});
 			}
 		} catch (error) {
 			console.log(error);

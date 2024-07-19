@@ -6,21 +6,28 @@ import CreateConfession from "./subComponents/CreateConfession";
 import ConfessionCard from "./ConfessionCard";
 
 // utils + types
+import { useInView } from 'react-intersection-observer'
 import { serverApi } from "../Auth/AuthProvider";
 import { ConfessionType } from "../definations/backendTypes";
 
-
 const Confessions = () => {
+    const { ref, inView } = useInView();
     const [create, setCreate] = useState(false);
-    const [confessions, setConfessions] = useState<ConfessionType[]>([]); 
+    const [cursor, setCursor] = useState<string|null>('')
+    const [confessions, setConfessions] = useState<ConfessionType[]>([]);
 
     useEffect(() => {
         const fetchConfessions = async () => {
+            if (cursor == null) return;
+
             try {
-                const response = await serverApi.get<{ data: ConfessionType[] }>('/confess');
-                // console.log(response)
-                if (Array.isArray(response.data.data)) {
-                    setConfessions(response.data.data); // Ensure the response is an array
+                const response = await serverApi.get<{ data: ConfessionType[], nextCursor: string | null }>(`/confess${cursor ? `?cursor=${cursor}` : ''}`);
+                const { data, nextCursor } = response.data;
+
+                if (Array.isArray(data)) {
+                    setConfessions([...confessions, ...data]); // Ensure the response is an array
+                    // cursor for next pagination
+                    setCursor(nextCursor)
                 } else {
                     console.error('Response data is not an array:', response.data);
                 }
@@ -29,7 +36,7 @@ const Confessions = () => {
             }
         };
         fetchConfessions();
-    }, []);
+    }, [inView]);
 
 
     return (
@@ -45,6 +52,23 @@ const Confessions = () => {
                 {confessions.map(confession => (
                     <ConfessionCard key={confession._id} confession={confession} />
                 ))}
+
+                {
+                    cursor != null ?
+                        <section className="flex justify-center items-center w-full">
+                            <div ref={ref}>
+                                <img
+                                    src="/spinner.svg"
+                                    alt="spinner"
+                                    width={56}
+                                    height={56}
+                                    className="object-contain"
+                                />
+                            </div>
+                        </section>
+                        :
+                        ''
+                }
             </div>
         </>
     );

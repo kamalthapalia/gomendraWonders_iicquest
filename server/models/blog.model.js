@@ -30,7 +30,7 @@ const blogSchema = new Schema({
 	// 	},
 	// 	require: true,
 	// },
-});
+}, {timestamps: true});
 
 const Blog = models.Blog || model("Blog", blogSchema);
 export default Blog;

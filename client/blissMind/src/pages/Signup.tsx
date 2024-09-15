@@ -1,13 +1,14 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { serverApi } from "../Auth/AuthProvider.tsx";
+import {useAuth } from "../Auth/AuthProvider.tsx";
 
 const Signup = () => {
+    const { signUp } = useAuth();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
         fullName: "",
-        gender: "",
+        gender: "male",
         age: "",
         type: "student"
     });
@@ -26,10 +27,10 @@ const Signup = () => {
     // Handle form submit
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
         try {
-            const response = await serverApi.post("/auth/signup", formData);
-            console.log('Form data submitted:', formData);
-            // navigate("/user");
+            await signUp(formData);
+            navigate("/");
         } catch (error) {
             console.error('Error during sign up:', error);
         }
@@ -98,14 +99,10 @@ const Signup = () => {
                     </div>
                     <div className={`flex flex-col`}>
                         <label className={`text-sm font-medium`}>Gender:</label>
-                        <input
-                            type="text"
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleChange}
-                            className={`border border-gray-300 p-2 rounded outline-none`}
-                            required
-                        />
+                        <select name="gender" value={formData.gender} defaultValue={formData.gender} onChange={handleChange} className={`border border-gray-300 p-2 rounded outline-none`} required>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
                     </div>
                     <div className={`flex flex-col`}>
                         <label className={`text-sm font-medium`}>User Type:</label>

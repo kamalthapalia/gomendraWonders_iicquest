@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { serverApi } from '../Auth/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 const CreateBlog = () => {
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
+    const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         try {
             const response = await serverApi.post('/blogs/', {
@@ -13,6 +15,7 @@ const CreateBlog = () => {
                 description: body
             });
             console.log('Blog created successfully:', response.data);
+            navigate('/profile/blog')
             // Optionally, reset the form or show a success message
         } catch (error) {
             console.error('Error creating blog:', error);

@@ -12,12 +12,26 @@ const commentSchema = new Schema({
         require: true
     },
 
-    text: {
+    userComment: {
         type: String,
         require: true,
         maxlength: 1000
     }
+}, {timestamps: true})
+
+
+const confessReactionSchema = new Schema({
+    like: [{
+        type: Types.ObjectId,
+        ref: "User"
+    }],
+
+    dislike: [{
+        type: Types.ObjectId,
+        ref: "User"
+    }],
 })
+
 
 const confessSchema = new Schema({
     userId: {
@@ -38,19 +52,13 @@ const confessSchema = new Schema({
         type: Boolean,
         require: true,
         default: false
-    }, 
-
-    like: {
-        type: Number,
-        default: 0
     },
 
-    dislike: {
-        type: Number,
-        default: 0
+    reactionId: {
+        type: Types.ObjectId,
+        ref: "Reaction"
     },
-
-    comment: [
+    comments: [
         {
             type: Types.ObjectId,
             ref: "Comment"
@@ -61,4 +69,6 @@ const confessSchema = new Schema({
 
 const Comment = models.Comment || model("Comment", commentSchema);
 const Confess = models.Confess || model("Confess", confessSchema);
-export default Confess;
+const Reaction = models.Reaction || model("Reaction", confessReactionSchema);
+
+export { Comment, Confess, Reaction};

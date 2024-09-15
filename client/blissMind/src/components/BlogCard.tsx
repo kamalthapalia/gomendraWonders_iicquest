@@ -1,16 +1,10 @@
 import React from 'react';
 import {Link} from "react-router-dom";
-
-interface Blog {
-    _id: string;
-    userId: string;
-    title: string;
-    description: string;
-    __v: number;
-}
+import { BlogType } from '../definations/backendTypes';
+import { timeParser } from '../utils/timeParser';
 
 interface BlogCardProps {
-    blog: Blog;
+    blog: BlogType;
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
@@ -24,7 +18,8 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
             {/*/>*/}
             <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center text-sm mt-2 font-semibold text-gray-700">
-                    <p>1 min ago</p>
+                    {/* <p>1 min ago</p> */}
+                    <p>{timeParser(blog.updatedAt)}</p>
                 </div>
                 <p className="font-bold text-lg">{blog.title}</p>
                 <p className="text-sm font-medium text-gray-700 line-clamp-4 ">{blog.description}</p>

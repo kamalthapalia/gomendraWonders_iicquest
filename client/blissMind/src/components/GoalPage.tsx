@@ -3,15 +3,10 @@ import {useParams} from 'react-router-dom';
 import {goals} from '../utils/Goals';
 import {FaCheckCircle, FaClock} from 'react-icons/fa';
 
-interface GoalPageParams {
-    id: string;
-}
-
 const MAX_TIME_MINUTES = 120; // Maximum allowed time in minutes
 
-
 const GoalPage: React.FC = () => {
-    const {id} = useParams<GoalPageParams>();
+    const {id} = useParams<{id: string}>();
     const goal = goals.find(goal => goal.id === parseInt(id));
 
     const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -19,7 +14,8 @@ const GoalPage: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState<string>('');
 
     useEffect(() => {
-        let timer: NodeJS.Timeout;
+        // let timer: NodeJS.Timeout;
+        let timer: number;
         if (timeLeft > 0) {
             timer = setInterval(() => {
                 setTimeLeft(prevTime => (prevTime > 0 ? prevTime - 1 : 0));

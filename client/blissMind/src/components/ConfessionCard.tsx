@@ -1,59 +1,112 @@
-import { useState } from "react";
-import { AiOutlineClose, AiOutlineComment, AiOutlineEdit, AiOutlineHeart } from "react-icons/ai";
-import { IoHeartDislikeOutline } from "react-icons/io5";
-import Confession from "./Confession.tsx";
+import { useEffect, useRef, useState } from "react";
+import { AiOutlineClose } from "react-icons/ai";
 
-const ConfessionCard = ({ confession }) => {
+// types
+import { ConfessionType } from "../definations/backendTypes.ts";
+import ConfessionCardFrame from "./subComponents/ConfessionCardFrame.tsx";
+import ConfessionCommentFrame from "./ConfessionCommentFrame.tsx";
+import { serverApi, useAuth } from "../Auth/AuthProvider.tsx";
+import { ConfessionCardFrameProps, Reaction, reactionRefType } from "../definations/frontendTypes.ts";
+
+const ConfessionCard = ({ confession }: { confession: ConfessionType }) => {
+    const { user } = useAuth();
+
     const [openPost, setOpenPost] = useState(false);
-    const [editPost, setEditPost] = useState(false);
+    const [reaction, setReaction] = useState<Reaction>(Reaction.NONE);
+
+    const reactionRef = useRef<reactionRefType>({
+        defaultLike: 0,
+        defaultDislike: 0,
+        userReaction: 0,
+        numOfReaction: {
+            like: 0,
+            dislike: 0
+        }
+    });
+
+    const [numOfReaction, setNumOfReaction] = useState({
+        like: 0,
+        dislike: 0,
+        comment: confession.comments.length
+    })
+    
+
+    const handleModalClose = () => {
+        setOpenPost(false);
+        document.body.style.overflowY = 'auto';
+    }
+
+    const confessionCardFrameProps: Omit<ConfessionCardFrameProps, "sideEffectOnUnmount"> = {
+        confession,
+        setNumOfReaction,
+        numOfReaction,
+        setOpenPost,
+        reaction,
+        reactionRef,
+        setReaction
+    };
+
+    useEffect(() => {
+        const fetchReaction = async () => {
+            try {
+                const res = await serverApi.get(`/confess/reactions/${confession.reactionId}`);
+
+                const likeArr = res.data.data.like;
+                const dislikeArr = res.data.data.dislike;
+                const likeCount = likeArr.length;
+                const dislikeCount = dislikeArr.length;
+
+                reactionRef.current = {
+                    defaultLike: likeCount,
+                    defaultDislike: dislikeCount,
+                    numOfReaction: {
+                        like: likeCount,
+                        dislike: dislikeCount
+                    },
+                    userReaction: 0
+                }
+
+                setNumOfReaction(prev => ({
+                    like: likeCount,
+                    dislike: dislikeCount,
+                    comment: prev.comment
+                }))
+
+                if (likeArr.includes(user.userId)) {
+                    setReaction(Reaction.LIKE)
+                } else if (dislikeArr.includes(user.userId)) {
+                    setReaction(Reaction.DISLIKE)
+                } else {
+                    setReaction(Reaction.NONE)
+                }
+
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        fetchReaction();
+    }, [])
+    
 
     return (
-        <>
-            <div onClick={() => {
-                setOpenPost(true);
-                document.body.style.overflowY = 'hidden';
-            }} className=" bg-gray-50 border border-blue-100 cursor-pointer rounded p-3 flex flex-col gap-2">
-                <div className={`flex justify-between`}>
-                    <div className={`flex gap-3.5 items-center`}>
-                        <img src="https://avatar.iran.liara.run/public" className={`w-14 h-14 bg-red-200 rounded-full`} alt="" />
-                        <div className={`flex flex-col gap-0`}>
-                            <p className={`font-semibold`}>{confession.isanonymous ? "Anonymous" : confession.fullName}</p>
-                            <p className={`text-sm font-semibold text-gray-500`}>{confession.createdAt.split("T")[0]}</p>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <p className={` text-gray-700 line-clamp-5 pt-3`}>{confession.description}</p>
-                    <div className={`flex mt-5 gap-3`}>
-                        <div className={`flex items-center gap-2`}>
-                            <AiOutlineHeart className={`text-lg`} />
-                            <p className={`font-semibold text-sm`}>{confession.like} likes</p>
-                        </div>
-                        <div className={`flex items-center gap-2 hover:bg-emerald-100 p-2 rounded-full cursor-pointer`}>
-                            <IoHeartDislikeOutline className={`text-lg`} />
-                            <p className={`font-semibold text-sm`}>{confession.dislike} dislikes</p>
-                        </div>
-                        <div className={`flex items-center gap-2`}>
-                            <AiOutlineComment className={`text-lg`} />
-                            <p className={`font-semibold text-sm`}>{confession.comments} comments</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div>
+            <ConfessionCardFrame {...confessionCardFrameProps} sideEffectOnUnmount />
+
             {openPost &&
-                <div className={`py-20 fixed inset-0 w-full pb-8 overflow-y-scroll backdrop-blur h-full bg-gray-600/30`}>
+                <div className={`z-50 py-20 fixed inset-0 w-full pb-8 overflow-y-scroll backdrop-blur h-full bg-gray-600/30`}>
                     <div className={`flex justify-end sticky top-0`}>
-                        <div onClick={() => {
-                            setOpenPost(false);
-                            document.body.style.overflowY = 'auto';
-                        }} className={`p-3 shadow cursor-pointer backdrop-blur m-3 rounded-full text-2xl bg-white`}>
+                        <div onClick={handleModalClose} className={`p-3 shadow cursor-pointer backdrop-blur m-3 rounded-full text-2xl bg-white`}>
                             <AiOutlineClose />
                         </div>
                     </div>
-                    <Confession confessionId={confession._id} />
+
+                    <div className={`h-[40vh] max-h-[60vh] max-w-[900px] p-5 rounded container mx-auto bg-gray-50`}>
+                        <ConfessionCardFrame {...confessionCardFrameProps} sideEffectOnUnmount={false} />
+                        <ConfessionCommentFrame confessionId={confession._id} setNumOfReaction={setNumOfReaction} />
+                    </div>
                 </div>
             }
-        </>
+        </div>
     );
 };
 

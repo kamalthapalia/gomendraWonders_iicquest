@@ -1,5 +1,7 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useEffect } from 'react';
 import axios, { isAxiosError } from 'axios';
+import { AuthContextProps, signUpType, UserType } from '../definations/frontendTypes';
+import useUserStorage from '../Hooks/useUserStorage.ts';
 
 // serverApi
 export const serverApi = axios.create({
@@ -7,32 +9,25 @@ export const serverApi = axios.create({
   withCredentials: true
 })
 
-interface User {
-  id: string;
-  fullName: string;
-  email: string;
-  type: string;
-  description: string;
-}
+const AuthContext = createContext<AuthContextProps>({
+  user: {} as UserType,
+  signUp: async () => { },
+  login: async () => { },
+  logout: async () => { }
+});
 
-interface AuthContextProps {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
-
-const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useUserStorage();
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const response = await serverApi.get('/auth', { withCredentials: true });
-        console.log(response);
         setUser(response.data.data);
+
       } catch (error) {
+        // console.log(error)
+        setUser({} as UserType)
         console.error('User not authenticated');
       }
     };
@@ -40,36 +35,42 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     checkUser();
   }, []);
 
+  const signUp = async (formData: signUpType) => {
+    try {
+      const res = await serverApi.post("/auth/signup", formData);
+      console.log('Form data submitted:', formData);
+      setUser(res.data.data)
+
+    } catch (error) {
+      console.error('Error during sign up:', error);
+    }
+  }
+
   const login = async (email: string, password: string) => {
     try {
-      console.log(email, password);
-      const res = await serverApi.post('/auth/login', { email, password }, { withCredentials: true });
-      console.log(res);
-      const response = await serverApi.get('/auth', { withCredentials: true });
-      console.log(response)
-      setUser(response.data.data);
+      const res = await serverApi.post('/auth/login', { email, password });
+      setUser(res.data.data);
     } catch (error) {
       console.log(error)
-      console.error('Login failed');
+      throw new Error("Invalid Credentials Provided!")
     }
   };
 
-  const logout = async() => {
+  const logout = async () => {
     try {
-      await serverApi.get('/auth/logout', {withCredentials: true});
-      setUser(null);
-
+      await serverApi.get('/auth/logout', { withCredentials: true });
+      setUser({} as UserType);
     } catch (error) {
-      if (isAxiosError(error)){
+      if (isAxiosError(error)) {
         console.log(error.message);
       }
     }
   };
 
   return (
-      <AuthContext.Provider value={{ user, login, logout }}>
-        {children}
-      </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, signUp, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 

@@ -1,8 +1,11 @@
 import logo from '../assets/logo.jpg'
 import {LuUser} from "react-icons/lu";
 import {NavLink} from "react-router-dom";
+import { useAuth } from '../Auth/AuthProvider';
 
 const Navbar = () => {
+    const {user} = useAuth();
+
     return (
         <div className={`flex sticky top-0 bg-white z-[999] justify-between py-3 border-b px-10 items-center`}>
             <div className={`flex items-center gap-8`}>
@@ -29,7 +32,7 @@ const Navbar = () => {
                     </ul>
                 </div>
             </div>
-            <NavLink to={'/profile'}>
+            <NavLink to={`${ user.type == "student" ? "/profile/journal" : "/profile/blog" }`}>
                 <div>
                     <LuUser className={`cursor-pointer`} size={`1.5em`}/>
                 </div>

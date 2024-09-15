@@ -5,6 +5,22 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
+@keyframes rotateToRight {
+    0% {
+      left: 0;
+      transform: translateX(0) rotate(0deg);
+    }
+    100% {
+      left: 105%;
+      transform: translateX(-100%) rotate(1440deg);
+    }
+  }    
+
+
+.rotate-to-right{
+    animation: rotateToRight 0.75s ease-in-out forwards;
+}
+
 .active {
     @apply text-green-600;
 }
